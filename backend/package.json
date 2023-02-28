@@ -1,0 +1,32 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "backend for chess.io",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aleolik/chess.io.git"
+  },
+  "author": "aleolik",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aleolik/chess.io/issues"
+  },
+  "homepage": "https://github.com/aleolik/chess.io#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "jsonwebtoken": "^9.0.0",
+    "pg": "^8.9.0",
+    "sequelize": "^6.28.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
