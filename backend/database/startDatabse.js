@@ -1,20 +1,19 @@
 const User = require('../models/User.js')
 const Match = require('../models/Match.js')
 const History = require('../models/History.js')
+const sequilize = require('./database.js')
 
 
 
 
 const startDB = async() => {
-    await User.sync()
-    await Match.sync()
-    await History.sync()
+    await sequilize.sync()
 }
 
 const connectToDB = () => {
     User.hasOne(History)
     History.hasMany(Match)
-    Match.hasMany(User)
+    // Match.hasMany(User)
 
 
     // sync process
