@@ -10,7 +10,7 @@ src/config.ts
 src/TODO.txt
 # testing
 /coverage
-
+/static
 # production
 /build
 

@@ -23,7 +23,7 @@ module.exports = function(role){
     
             next()
         } catch (e) {
-            res.status(e.status).json(e.message)
+            return res.status(403).json({"message":"Forbbiden"})
         }
     }
 }

@@ -1,4 +1,4 @@
-const User = require('../models/User.js')
+const {User} = require('../models/User.js')
 const Match = require('../models/Match.js')
 const History = require('../models/History.js')
 const sequilize = require('./database.js')

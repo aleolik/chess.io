@@ -1,4 +1,4 @@
-    
+
 const jwt = require('jsonwebtoken')
 
 module.exports = function(req,res,next){
@@ -19,7 +19,7 @@ module.exports = function(req,res,next){
 
         next()
     } catch (e) {
-        return res.status(e.status).json({"message":e.message})
+        return res.status(401).json({"message":"Unathorized"})
     }
 
 }
