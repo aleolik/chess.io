@@ -7,8 +7,9 @@ const bcrypt = require('bcrypt')
 const checkUserUnqiue = require("../utils/checkUserUnqiue")
 const checkAvailableRoles = require("../utils/checkAvailableRoles")
 const checkIdType = require('../utils/checkIdType.js')
-
-
+const fs = require('fs')
+const {getDirByUsername} = require('../utils/fileOperations.js')
+const path = require('path')
 
 class userController{
     async register(req,res,next){
@@ -181,10 +182,77 @@ class userController{
         } catch (e) {
             next(ApiError.badRequest(e.message))
         }
-   
-        
-
     }
+
+    async changeUserData(req,res,next){
+        try {
+            const id = req.params?.id
+            // TODO : ability to change email and password also
+            const {
+                username,
+                email,
+            } = req.body
+
+            const img = req.files?.img || null
+
+            const userByToken = req.user
+
+            if (userByToken.id !== parseInt(id)){
+                return next(ApiError.badRequest('You can only change personal info!'))
+            }
+    
+            if (!id){
+                return next(ApiError.badRequest('id was not provided'))
+            }
+    
+            const user = await User.findOne({where:{id:id}})
+    
+            if (!user){
+                return next(ApiError.badRequest(`user with id : ${id} does not exist!`))
+            }
+            
+            // check if username is free
+            if (req.user.username !== username){
+                const ifUsernameExists = await User.findOne({where:{username:username}})
+                if (ifUsernameExists) {
+                    return next(ApiError.badRequest(`account with username : '${username}' already exists!`))
+                }
+            }
+            // check if email is free
+            if (req.user.email !== email){
+                const ifEmailExists = await User.findOne({where:{email:email}})
+                if (ifEmailExists) {
+                    return next(ApiError.badRequest(`account with email : '${email}' already exists!`))
+                }
+            }
+
+            let newFilePath = null 
+            if (req.user.img !== img){
+                newFilePath = ImgHandler(img)
+                if (newFilePath && user.img){
+                    // delete old img in folder
+                    try {
+                        const dir = getDirByUsername(user.username)
+                        const pathToFile = path.resolve(dir,user.img)
+                        fs.unlinkSync(pathToFile)
+                    } catch (e) {
+                        console.error('img in folder was not deleted')
+                    }
+                }
+            }
+
+            await user.update({
+                username : username ? username : user.username,
+                img : newFilePath ? newFilePath : user.img,
+                email : email ? email : user.email
+            })
+    
+            return res.json({"user":user})
+        } catch (e) { 
+            next(ApiError.badRequest(e.message))
+        }
+    }
+
     async check(req,res,next){
         try {
             const token = generateToken(
@@ -229,6 +297,16 @@ class userController{
             await user.destroy()
 
             // TODO : remove static file
+            if (user.img){
+                try {
+                    const dir = getDirByUsername(user.username)
+                    if (fs.existsSync(dir)){
+                        fs.rmdirSync(dir,{ recursive: true, force: true })
+                    }
+                } catch (e) {
+                    
+                }
+            }
             
             return res.json({"user":user,"message":"user was deleted"})
         } catch (e) {

@@ -2,6 +2,7 @@
 const ApiError = require("../error/ApiError")
 const path = require('path')
 const fs = require('fs')
+const {getDirByUsername} = require('../utils/fileOperations')
 
 const getType = (imgName=null) => {
     const availableTypes = {
@@ -39,7 +40,7 @@ const ImgHandler = (file,username) => {
     }
 
     // creteas new folder for user if not exists!
-    const newPath = path.resolve(__dirname,'..','static',username)
+    const newPath = getDirByUsername(username)
     if(!fs.existsSync(newPath)){
         fs.mkdirSync(newPath)
     }

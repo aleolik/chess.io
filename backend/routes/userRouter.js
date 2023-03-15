@@ -14,6 +14,8 @@ userRotuer.post('/register',userController.register)
 userRotuer.post('/login',userController.login)
 // gets data by token
 userRotuer.get('/auth',authMiddleware,userController.check)
+// change user data(only yourself)
+userRotuer.put('/change-user/:id',authMiddleware,userController.changeUserData)
 
 // admin router
 userRotuer.use('/admin',checkRoleMiddleware(ADMIN_ROLE),userAdminRouter)

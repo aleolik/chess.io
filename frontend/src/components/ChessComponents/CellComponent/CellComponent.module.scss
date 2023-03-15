@@ -1,0 +1,40 @@
+.cell {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+  
+.black{
+    background-color: whitesmoke;
+}
+  
+.white{
+    background-color: darkslategray;
+}
+
+.figure{
+    width: 96px;
+    height: 96px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.selected{
+    background-color: darkgreen;
+}
+
+.available{
+    background: lightgreen;
+    border-radius: 50%;
+    height: 12px;
+    width: 12px;
+}
+
+
+.attackCell{
+    background-color: lightgreen;
+}

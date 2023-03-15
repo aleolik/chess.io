@@ -1,0 +1,21 @@
+.sideBar{
+    width: 15vw;
+    height: 100vh;
+    background-color: black;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.logo{
+    margin-top: 20px;
+    width: 80px;
+    height: 60px;
+    background-color: red;
+}
+.sideBar > button{
+    margin-top: 15px;
+    width: 10vw;
+    height: 5vh;
+    text-align: center;
+}
