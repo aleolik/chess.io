@@ -1,4 +1,4 @@
-import { Cell } from "./Cell"
+import { Cell, availableCoordinates } from "./Cell"
 import { Colors } from "./Colors"
 import { Bishop } from "./figures/Bishop"
 import { Horse } from "./figures/Horse"
@@ -8,15 +8,21 @@ import { Queen } from "./figures/Queen"
 import { Rook } from "./figures/Rook"
 export class Board {
     cells : Cell[][] = []
+    
+    constructor(){
 
+    }
+    
     public initCells(){
         for (let i = 0;i<8;i++){
             const row : Cell[] = []
             for (let j = 0;j<8;j++){
+                let index = i as availableCoordinates
+                let jIndex = j as availableCoordinates
                 if ((i + j) % 2 === 0){
-                    row.push(new Cell(this,i,j,Colors.WHITE,null))
+                    row.push(new Cell(this,index,jIndex,Colors.WHITE,null))
                 } else {
-                    row.push(new Cell(this,i,j,Colors.BLACK,null))
+                    row.push(new Cell(this,index,jIndex,Colors.BLACK,null))
                 }
             }
             this.cells.push(row);

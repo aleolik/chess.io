@@ -2,10 +2,24 @@
     width: 64px;
     height: 64px;
     display: flex;
+    position: relative;
     justify-content: center;
     align-items: center;
 }
-  
+.x_cordinat{
+    left: 0;
+    font-size: 15px;
+    color: black;
+    top: 0;
+    position: absolute;
+}
+.y_cordinat{
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    font-size: 15px;
+    color: black;
+}
 .black{
     background-color: whitesmoke;
 }
@@ -15,20 +29,19 @@
 }
 
 .figure{
-    width: 96px;
-    height: 96px;
+    width: 72px;
+    height: 84px;
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
 }
 
 .selected{
-    background-color: darkgreen;
+    background-color: rgb(2, 80, 18);
 }
 
 .available{
-    background: lightgreen;
+    background: rgb(0, 230, 0);
     border-radius: 50%;
     height: 12px;
     width: 12px;
@@ -36,5 +49,5 @@
 
 
 .attackCell{
-    background-color: lightgreen;
+    background-color:rgb(0, 230, 0);
 }

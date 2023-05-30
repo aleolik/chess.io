@@ -4,15 +4,18 @@ const generateToken = require("../utils/generateToken")
 const ImgHandler = require("../utils/imgHandler")
 const History = require('../models/History')
 const bcrypt = require('bcrypt')
-const checkUserUnqiue = require("../utils/checkUserUnqiue")
+const checkUserData = require("../utils/checkUserData")
 const checkAvailableRoles = require("../utils/checkAvailableRoles")
 const checkIdType = require('../utils/checkIdType.js')
 const fs = require('fs')
 const {getDirByUsername} = require('../utils/fileOperations.js')
+const generatePassword = require('generate-password')
+const getRandomInt = require('../utils/getRandomInt.js')
 const path = require('path')
 
 class userController{
     async register(req,res,next){
+
         try {
             // required fileds
             const {username,password,email} = req.body
@@ -30,11 +33,17 @@ class userController{
                 if (!email){
                     return next(ApiError.badRequest('email was not provided'))
                 }
-            }
-            // check if unique
-            const userObj = await checkUserUnqiue(email,username)
-            if (!userObj.isUnique){
-                return next(ApiError.badRequest(userObj.message))
+            } 
+
+            // check if given data is correct
+            const response = await checkUserData(email,username,password)
+            if (response.status !== 200){
+                if (response.status === 500){
+                    return next(ApiError.internal(response.message))
+                }
+                if (response.status === 404){
+                    return next(ApiError.badRequest(response.message))
+                }
             }
             
             // imgHandler
@@ -65,11 +74,10 @@ class userController{
             const token = generateToken(
                 newUser.id,
                 newUser.email,
-                newUser.roles,
                 newUser.username,
+                newUser.roles,
                 newUser.img
             )
-            
             
             return res.json({"token":token})
         } catch(e){
@@ -96,10 +104,29 @@ class userController{
                 }
             }
         
-            // check if unique
-            const userObj = await checkUserUnqiue(email,username)
-            if (!userObj.isUnique){
-                return next(ApiError.badRequest(userObj.message))
+            const anyErrorsObject = await checkUserData(email,username,password)
+            // can only be string if error in try block(e.message returned)
+            if (typeof anyErrorsObject === 'string'){
+                return next(ApiError.badRequest(anyErrorsObject))
+            }
+            if (anyErrorsObject.emailError || anyErrorsObject.usernameError || anyErrorsObject.passwordError){
+                if ((anyErrorsObject.usernameError && anyErrorsObject.emailError) || (anyErrorsObject.usernameError && anyErrorsObject.passwordError)){
+                    // at least 2 errors
+                    return next(ApiError.badRequest({"errors":anyErrorsObject}))
+                }
+                if (anyErrorsObject.passwordError &&  anyErrorsObject.emailError){
+                    return next(ApiError.badRequest({"errors":anyErrorsObject}))
+                }
+                
+                if (anyErrorsObject.emailError){
+                    return next(ApiError.badRequest(anyErrorsObject.emailError))
+                }
+                if (anyErrorsObject.usernameError){
+                    return next(ApiError.badRequest(anyErrorsObject.usernameError))
+                }
+                if (anyErrorsObject.passwordError){
+                    return next(ApiError.badRequest(anyErrorsObject.passwordError))
+                }
             }
                     
             // imgHandler
@@ -136,8 +163,8 @@ class userController{
             const token = generateToken(
                 newUser.id,
                 newUser.email,
-                newUser.roles,
                 newUser.username,
+                newUser.roles,
                 newUser.img
             )
                     
@@ -265,7 +292,28 @@ class userController{
     
             return res.json({"token":token})
         } catch (e) {
-           next(ApiError.badRequest(e.message))
+           next(ApiError.badRequest(e?.message))
+        }
+    }
+
+    async generateRandomPassword(req,res,next){
+        const usernameLengthMin = 20
+        const usernameLengthMax = 35
+        try {
+            const randomLength = getRandomInt(usernameLengthMin,usernameLengthMax)
+            // TODO : diff special symbols
+            const password = generatePassword.generate({
+                length:randomLength,
+                numbers:true,
+                symbols:true,
+                uppercase:true,
+                lowercase:true,
+                strict:true  
+            })
+
+            return res.json({"password":password})
+        } catch (error) {
+            next(ApiError.internal(error?.message))
         }
     }
     // admin function

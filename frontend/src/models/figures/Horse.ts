@@ -16,7 +16,11 @@ export class Horse extends Figure{
             return false
         }
 
-        return true;
+        const IMove = Math.abs(this.cell.i - target.i)
+        const JMove = Math.abs(this.cell.j - target.j)
+        if (IMove === 1 && JMove === 2 || IMove === 2 && JMove === 1) return true
+
+        return false
     }
 
 }

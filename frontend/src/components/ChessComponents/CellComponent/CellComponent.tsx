@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useMemo, useState } from 'react'
 import scss from './CellComponent.module.scss'
-import { Cell } from '../../../models/Cell'
+import { Cell, availableCoordinates } from '../../../models/Cell'
 import { Colors } from '../../../models/Colors'
 
 interface CellProps{
@@ -10,15 +10,31 @@ interface CellProps{
 }
 
 
+const convertNumToLetterByChessRules = (i : availableCoordinates) : string => {
+  const dict : { [id : number] : string} = {
+    0 : 'a',
+    1 : 'b',
+    2 : 'c',
+    3 : 'd',
+    4 : 'e',
+    5 : 'f',
+    6: 'g',
+    7: 'h',
+  }
+
+  return dict[i]
+  
+}
+
 
 const CellComponent : FC<CellProps> = ({cell,onClick,selectedCell}) => {
 
-  const [cellStyles,setCellStyles] = useState([scss.cell])
+  const [cellStyles,setCellStyles] = useState<typeof scss.cell[]>([scss.cell])
 
   useEffect(() => {
 
     if (selectedCell && selectedCell.id === cell.id) {
-      setCellStyles([scss.selected,scss.cell])
+      setCellStyles([scss.cell,scss.selected])
       return;
     }
 
@@ -31,6 +47,14 @@ const CellComponent : FC<CellProps> = ({cell,onClick,selectedCell}) => {
 
   return (
     <div onClick={() => onClick(cell)} style={{'background':cell.available && cell.figure && selectedCell ? 'lightgreen' : ''}} className={cellStyles.join(' ')}>
+          {/* first column */}
+          {cell.j === 0 && (
+            <div className={scss.x_cordinat}>{cell.i}</div>
+          )}
+          {/* last row */}
+          {cell.i === 7 && (
+            <div className={scss.y_cordinat}>{convertNumToLetterByChessRules(cell.j)}</div>
+          )}
           {cell.figure?.img && (
             <img className={scss.figure} src={cell.figure.img} alt='figure'></img>
           )}

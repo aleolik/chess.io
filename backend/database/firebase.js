@@ -12,7 +12,6 @@ const {getStorage} = require('firebase-admin/storage')
 //     messagingSenderId: process.env.messagingSenderId,
 //     appId: process.env.appId,
 //     measurementId: process.env.measurementId,
-//     storageBucket:process.env.storageBucket
 //   };
 
 // const app = admin.initializeApp({

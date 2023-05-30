@@ -1,21 +1,119 @@
-.sideBar{
-    width: 15vw;
-    height: 100vh;
-    background-color: black;
+@import "../../../App.scss";
+
+
+.sidebar{
+    min-height: 100vh;
+    background-color: $black;
+    width: 10vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: sticky;
+    top: 0;
+}
+.container{
     display: flex;
     align-items: center;
     flex-direction: column;
+    margin-top: min(10px,5vh);
 }
 
-.logo{
-    margin-top: 20px;
-    width: 80px;
-    height: 60px;
-    background-color: red;
-}
-.sideBar > button{
-    margin-top: 15px;
-    width: 10vw;
-    height: 5vh;
+.sidebarButton {
+    background-image: linear-gradient(to right, #DA22FF 0%, #9733EE  51%, #DA22FF  100%);
+    margin: 10px;
+    padding: 15px 45px;
     text-align: center;
+    text-transform: uppercase;
+    transition: 0.5s;
+    background-size: 200% auto;
+    color: white;            
+    box-shadow: 0 0 20px #eee;
+    border-radius: 10px;
+    display: block;
+    margin-top: 1.5vh;
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-family:'Courier New', Courier, monospace;
+    width: min(150px,30vw);
+    height: 5vh;
+    &:hover{
+         background-position: right center; /* change the direction of the change here */
+         color: #fff;
+         text-decoration: none;
+    }
+  }
+ 
+ 
+.sidebarLogo{
+    width: 150px;
+    height: 150px;
+    border-radius: 35px;
+    margin-top: min(20px,5vh);
+}
+.sidebarLink{
+    color: white;
+    font-size: 150%;
+    margin-top: 1.5vh;
+    text-decoration: none;
+    &:hover{
+        font-size: 200%;
+        color: $primary;
+        text-decoration: none;
+    }
+}
+.activeLink{
+    color: $primary;
+    font-size: 180%;
+}
+.sidebar-button{
+    width: 150px;
+    height: 5vh;
+    border-radius: 10px;
+    margin-top: 10%;
+}
+
+.playButton{
+    width: 60vw;
+    background-color: $dark_secondary;
+    border: 2px solid $dark_secondary;
+    margin-top: min(15px,5vh);
+    border-radius: 35px;
+    height: min(50px,10vh);
+    display: none;
+    color: white;
+
+    &:hover{
+        background-color: $light_secondary;
+        border: 2px solid $light_secondary;
+        font-size: 120%;
+    }
+}
+
+@media (max-width:640px) {
+    .sidebar{
+        width: 100vw;
+    }
+    .playButton{
+        display: block;
+    }
+}
+
+.avatar{
+    width: min(60px,10vh);
+    height: min(60px,10vh);
+    border: 2px solid white;
+    border-radius: 30px;
+
+    &:hover{
+        border: 3px solid aqua;
+    }
+}
+.chessIoLogo{
+    width: 128px;
+    height: 64px;
+    margin-top: 1vh;
+    &:hover{
+        border: 1px solid aqua;
+        border-radius: 15px;
+    }
 }

@@ -1,0 +1,39 @@
+.container{
+    flex-direction: row;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 90vw;
+    height: 80vh;
+}
+.firstContainer{
+    display: flex;
+    flex-direction: column;
+}
+.bgImg{
+    width: 60vh;
+    height: 60vh;
+}
+.buttonPlay {
+    background-image: linear-gradient(to right, #1FA2FF 0%, #12D8FA  51%, #1FA2FF  100%);
+    margin-top: 1.5vh;
+    margin: 10px;
+    padding: 15px 45px;
+    text-align: center;
+    text-transform: uppercase;
+    transition: 0.5s;
+    background-size: 200% auto;
+    color: white;            
+    box-shadow: 0 0 20px #eee;
+    border-radius: 10px;
+    display: block;
+    width: max(300px,30vw);
+    letter-spacing: 1px;
+
+    &:hover {
+        background-position: right center; /* change the direction of the change here */
+        color: #fff;
+        text-decoration: none;
+    }
+  }
+

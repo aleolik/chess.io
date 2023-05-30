@@ -1,22 +1,21 @@
-import {combineReducers,configureStore,getDefaultMiddleware} from '@reduxjs/toolkit'
+import {combineReducers,configureStore} from '@reduxjs/toolkit'
 import { userSlice } from '../reducers/userReducer'
+import { modalSlice } from '../reducers/modalReducer'
 
-const customizedMiddleware = getDefaultMiddleware({
-    serializableCheck : false
+const RootRedcuer = combineReducers({
+    user : userSlice.reducer,
+    modal : modalSlice.reducer
 })
 
-
-const rootReducer = combineReducers({
-    user : userSlice.reducer
-})
-
-export const setupStore = () => {
+export const SetupStore = () => {
     return configureStore({
-        reducer : rootReducer,
-        middleware : customizedMiddleware
+        reducer : RootRedcuer,
+        middleware: getDefaultMiddleware => getDefaultMiddleware({
+            serializableCheck: false
+        })
     })
 }
 
-export type RootState = ReturnType<typeof rootReducer>
-export type AppStore = ReturnType<typeof setupStore>
+export type RootState = ReturnType<typeof RootRedcuer>
+export type AppStore = ReturnType<typeof SetupStore>
 export type AppDispatch = AppStore['dispatch']

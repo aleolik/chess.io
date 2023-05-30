@@ -9,16 +9,17 @@ export interface IUser {
     roles : string[]
 }
 
+
 export interface userState {
     user : IUser | null,
     error : string,
-    loading : boolean,
+    load : boolean,
 }
 
 const defaultState : userState = {
     user : null,
     error : '',
-    loading : false
+    load : false,
 }
 
 export const userSlice = createSlice({
@@ -28,17 +29,22 @@ export const userSlice = createSlice({
         startLoad(state:userState){
             state.user = null
             state.error = ''
-            state.loading = true
+            state.load = true
         },
         errorLoad(state:userState,action:PayloadAction<string>){
             state.user = null
             state.error = action.payload
-            state.loading = false
+            state.load = false
         },
         userLoad(state:userState,action:PayloadAction<IUser>){
             state.user = action.payload
             state.error = ''
-            state.loading = false
+            state.load = false
+        },
+        logout(state:userState){
+            state.error = ''
+            state.user = null
+            state.load = false
         }
     }
 })

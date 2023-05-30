@@ -3,17 +3,22 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { setupStore } from './redux/store/store';
+import { SetupStore } from './redux/store/store';
 import { Provider } from 'react-redux';
+import {
+  BrowserRouter
+} from 'react-router-dom'
 // ideas : progress uploader
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
-const store = setupStore()
+export const store = SetupStore()
 root.render(
   <Provider store={store}>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </Provider>
 );
 

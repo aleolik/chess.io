@@ -46,8 +46,6 @@ const ImgHandler = (file,username) => {
     }
     const filePath = path.resolve(__dirname,'..','static',username,fileName)
 
-    console.log(filePath)
-
     return filePath
 }
 

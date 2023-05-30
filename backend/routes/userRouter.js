@@ -16,6 +16,8 @@ userRotuer.post('/login',userController.login)
 userRotuer.get('/auth',authMiddleware,userController.check)
 // change user data(only yourself)
 userRotuer.put('/change-user/:id',authMiddleware,userController.changeUserData)
+// get random password for creating username
+userRotuer.get('/random-password',userController.generateRandomPassword)
 
 // admin router
 userRotuer.use('/admin',checkRoleMiddleware(ADMIN_ROLE),userAdminRouter)

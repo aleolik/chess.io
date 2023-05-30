@@ -1,0 +1,24 @@
+@import '../../../App.scss';
+
+.bottomContainer{
+    position: absolute;
+    width: 90vw;
+    background-color: $black;
+    bottom:0% ;
+    height: 15vh;
+    color: white;
+    font-size: 30px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+.githubLink{
+    cursor: pointer;
+    &:hover{
+     color: blue;
+     text-decoration: underline;
+     font-size: 35px;
+    }
+}

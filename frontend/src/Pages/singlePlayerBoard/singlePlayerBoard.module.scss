@@ -1,0 +1,34 @@
+.container{
+    width: 90vw;
+    height: 80vh;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+      
+.restartButton {
+   background-image: linear-gradient(to right, #DA22FF 0%, #9733EE  51%, #DA22FF  100%);
+   margin: 10px;
+   padding: 15px 45px;
+   text-align: center;
+   text-transform: uppercase;
+   transition: 0.5s;
+   background-size: 200% auto;
+   color: white;            
+   box-shadow: 0 0 20px #eee;
+   border-radius: 10px;
+   display: block;
+   margin-top: 1.5vh;
+   font-size: 15px;
+   letter-spacing: 2px;
+   font-family:'Courier New', Courier, monospace;
+   width: 25vw;
+   &:hover{
+        background-position: right center; /* change the direction of the change here */
+        color: #fff;
+        text-decoration: none;
+   }
+ }
+
+

@@ -30,11 +30,11 @@ export class Figure{
     }
 
     canMove(target:Cell) : boolean{
-        // you cant eat your pieces
+        // RULE : Can not attack your's figures
         if (target.figure && target.figure.color === this.color) {
             return false
         }
-        // cant attack the king (mate)
+        // RULE : MATE
         if (target.figure?.name === FigureNames.KING) {
             return false
         }
