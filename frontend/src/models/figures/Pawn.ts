@@ -50,7 +50,6 @@ export class Pawn extends Figure{
 
     public moveFigure(target: Cell): void {
         this.isFirstTurn = false
-        super.moveFigure(target)
         // RULE : When pawn reaches the end of the board,transform it to another fiqure(queen by defalt)
         if ((target.i === 0 && this.color === Colors.WHITE) || (target.i === 7 && this.color === Colors.BLACK)) {
             this.transformPawnToAnotherFiqure(target,this.color)

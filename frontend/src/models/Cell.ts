@@ -1,7 +1,9 @@
 import { Board } from "./Board";
 import { Colors } from "./Colors";
-import { Figure } from "./figures/Figure";
+import { Figure, FigureNames } from "./figures/Figure";
 import {v4} from 'uuid'
+import { King } from "./figures/King";
+
 
 
 export type availableCoordinates = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
@@ -29,6 +31,13 @@ export class Cell{
 
     public moveFigure(target:Cell){
         if (this.figure && this.figure.canMove(target) ) {
+            // RULE : swap with rook with king , if all statements are true
+            if (this.figure instanceof King && this.figure.doSwap && target.figure){
+                this.figure.moveFigure(target)
+                this.figure = null
+                target.figure = null
+                return;
+            }
             target.setFigure(this.figure)
             this.figure.moveFigure(target)
             this.figure = null

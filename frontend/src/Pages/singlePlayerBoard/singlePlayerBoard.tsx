@@ -5,7 +5,7 @@ import scss from './singlePlayerBoard.module.scss'
 
 const SinglePlayerBoardPage = () => {
   const [board,setBoard] = useState<Board>(new Board())
-  const [isWhiteTurn,setIsWhiteTurn] = useState<boolean>(true)
+  const [isWhiteTurn,setIsWhiteTurn] = useState<boolean>(false)
   const [isBlackTurn,setIsBlackTurn] = useState<boolean>(false)
 
   const restart = () => {
@@ -23,6 +23,7 @@ const SinglePlayerBoardPage = () => {
   }
 
   useEffect(() => {
+      setIsWhiteTurn(true)
       restart()
   },[])
   return (
