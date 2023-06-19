@@ -7,7 +7,7 @@ const RootRedcuer = combineReducers({
     modal : modalSlice.reducer
 })
 
-export const SetupStore = () => {
+const SetupStore = () => {
     return configureStore({
         reducer : RootRedcuer,
         middleware: getDefaultMiddleware => getDefaultMiddleware({
@@ -15,6 +15,8 @@ export const SetupStore = () => {
         })
     })
 }
+
+export const store = SetupStore()
 
 export type RootState = ReturnType<typeof RootRedcuer>
 export type AppStore = ReturnType<typeof SetupStore>

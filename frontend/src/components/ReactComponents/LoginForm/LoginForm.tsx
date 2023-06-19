@@ -2,16 +2,15 @@ import React, { ChangeEvent, useState } from 'react'
 import scss from './LoginForm.module.scss'
 import { useAppDispatch } from '../../../redux/hooks/useAppDispatch'
 import { LoginUserAction } from '../../../redux/AsyncActions/Login'
-import { store } from '../../..'
 import { modalSlice } from '../../../redux/reducers/modalReducer'
 import CustomAlert, { AlertTypes } from '../CustomAlert/CustomAlert'
+import { useAppSelector } from '../../../redux/hooks/useAppSelector'
+import { closeModalWindowAsync } from '../../../redux/AsyncActions/CloseModalWindowAsync'
 const LoginForm = () => {
     const dispatch = useAppDispatch()
-    const closeModalWindow = modalSlice.actions.closeModalWindow
-
     const [email,setEmail] = useState<string>('')
     const [password,setPassword] = useState<string>('')
-    const {error} = store.getState().user
+    const userOnError = useAppSelector(state => state.user.userOnError)
 
     const [passwordError,setPasswordError] = useState<string>('')
     const [emailError,setEmailError] = useState<string>('')
@@ -40,18 +39,13 @@ const LoginForm = () => {
       setPasswordError('')
 
       await dispatch(LoginUserAction(email,password))
-
-      const error = store.getState().user.error
-
-      if (!error) {
-        dispatch(closeModalWindow())
-      }
+      await dispatch(closeModalWindowAsync())
     }
   
     return (
       <form onSubmit={LoginUser} className={scss.form}>
-        {error && (
-          <CustomAlert type={AlertTypes.Error} message={error}/>
+        {userOnError && (
+          <CustomAlert type={AlertTypes.Error} message={userOnError}/>
          )}
         {emailError && (
           <CustomAlert type={AlertTypes.Error} message={emailError}/>

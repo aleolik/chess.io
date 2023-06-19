@@ -136,6 +136,7 @@ export const checkEmail = (email : string) : string => {
 
 
 export const getRandomCorrectPassword = async() : Promise<string> => {
+    // can not be used with axios userInstance because client is not signed in
     const url = '/user/random-password'
     try {
         const response = await axiosPublic.get(url)

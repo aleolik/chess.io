@@ -24,26 +24,6 @@ const navigationLinks : ICustomLink[] = [
         text : "ChessIo",
         to : "/"
     },
-    {
-        text : "history",
-        to : "/history"
-    },
-    {
-        text : "Puzzles",
-        to : "/Puzzles"
-    },
-    {
-        text : "Learn",
-        to : "/Learn"
-    },
-    {
-        text : "News",
-        to : "/News"
-    },
-    {
-        text : "...More",
-        to : "/More"
-    },
 ]
 
 const SideBar = () => {
@@ -66,7 +46,7 @@ const SideBar = () => {
     dispatch(showModalLogin())
     }   
 
-   const {load,error,user} = useAppSelector(state => state.user)
+   const user = useAppSelector(state => state.user.user)
 
   return (
     <div className={scss.sidebar}>
@@ -80,15 +60,6 @@ const SideBar = () => {
         <div>
             <div className={scss.container}>
                 <img src={chessLogo} alt="logo" className={scss.sidebarLogo}/>
-                {user && (
-                    <div className={scss.container}>
-                        <div>
-                            <div>
-                                <img className={scss.avatar} src={user?.img ? user.img : defaultUserIcon}/>
-                            </div>
-                        </div>
-                    </div>
-                )}
                 {user
                 ? (<button onClick={userLogout} className={scss.sidebarButton}>Logout</button>)
                 :(

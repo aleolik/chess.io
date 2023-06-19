@@ -1,18 +1,21 @@
 import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react'
 import scss from './RegisterForm.module.scss'
-import { checkEmail, checkPassword, checkUsername, getRandomCorrectPassword } from '../../../utils/FormFunctions'
+import {getRandomCorrectPassword } from '../../../utils/asyncUtils/generateRandomPassword'
+import {errorInEmail} from '../../../utils/data-checkers-light/check-email-light'
+import {errorInPassword} from '../../../utils/data-checkers-light/check-password-light'
+import {errorInUsername} from '../../../utils/data-checkers-light/check-username-light'
 import CustomAlert, { AlertTypes } from '../CustomAlert/CustomAlert'
 import { useAppDispatch } from '../../../redux/hooks/useAppDispatch'
 import { useAppSelector } from '../../../redux/hooks/useAppSelector'
 import { RegisterUserAction } from '../../../redux/AsyncActions/Register'
 import { modalSlice } from '../../../redux/reducers/modalReducer'
-import { store } from '../../..'
 import { AiFillEyeInvisible,AiFillEye} from 'react-icons/ai'
+import { closeModalWindowAsync } from '../../../redux/AsyncActions/CloseModalWindowAsync'
 
 const RegisterForm = () => {
 
   const dispatch = useAppDispatch()
-  const {load,user,error} = useAppSelector(state => state.user)
+  const {userOnLoad,user,userOnError} = useAppSelector(state => state.user)
   const {closeModalWindow} = modalSlice.actions
 
   const [email,setEmail] = useState<string>('')
@@ -84,23 +87,23 @@ const RegisterForm = () => {
   const CreateNewUser = async(event : FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
-        const errorInEmail = checkEmail(email)
-        const errorInPassword = checkPassword(password)
-        const errorInUsername = checkUsername(username)
+        const emailErr = errorInEmail(email)
+        const passwordErr = errorInPassword(password)
+        const usernameErr = errorInUsername(username)
 
-        if (errorInEmail || errorInPassword || errorInUsername) {
-            if (errorInEmail){
-              setEmailError(errorInEmail)
+        if (emailErr || passwordErr || usernameErr) {
+            if (emailErr){
+              setEmailError(emailErr)
             } else {
               setEmailError('')
             }
-            if (errorInUsername){
-              setUsernameError(errorInUsername)
+            if (usernameErr){
+              setUsernameError(usernameErr)
             } else {
               setUsernameError('')
             }
-            if (errorInPassword){
-              setPasswordError(errorInPassword)
+            if (passwordErr){
+              setPasswordError(passwordErr)
             } else {
               setPasswordError('')
             }
@@ -108,11 +111,8 @@ const RegisterForm = () => {
             return;
         }
 
-        const isError : string | undefined = await dispatch(RegisterUserAction(username,email,password))
-
-        if (!isError){
-          dispatch(closeModalWindow())
-        }
+        await dispatch(RegisterUserAction(username,email,password))
+        await dispatch(closeModalWindowAsync())
 
   }
 
@@ -130,8 +130,8 @@ const RegisterForm = () => {
 
   return (
     <form onSubmit={CreateNewUser} className={scss.form}>
-        {error && (
-          <CustomAlert type={AlertTypes.Error} message={error}/>
+        {userOnError && (
+          <CustomAlert type={AlertTypes.Error} message={userOnError}/>
          )}
         {usernameError && (
           <CustomAlert type={AlertTypes.Error} message={usernameError}/>

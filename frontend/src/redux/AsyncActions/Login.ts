@@ -1,4 +1,5 @@
-import { IUser, userSlice } from "../reducers/userReducer"
+import { userSlice } from "../reducers/userReducer"
+import {IUser} from '../../interfaces/IUser'
 import jwtDecode from "jwt-decode"
 import { AxiosError, AxiosResponse } from "axios"
 import { AppDispatch } from "../store/store"
@@ -24,8 +25,8 @@ export const LoginUserAction = (email:string,password:string) => {
         } catch (error) {
             const err = error as AxiosError
             if (err.response){
-                const response = err.response.data as string
-                dispatch(errorLoad(response))
+                const data = err.response.data as {message : string}
+                dispatch(errorLoad(data.message))
             }
         }
     }

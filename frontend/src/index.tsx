@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { SetupStore } from './redux/store/store';
+import { store } from './redux/store/store';
 import { Provider } from 'react-redux';
 import {
   BrowserRouter
@@ -13,7 +13,6 @@ const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
-export const store = SetupStore()
 root.render(
   <Provider store={store}>
     <BrowserRouter>

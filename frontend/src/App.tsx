@@ -6,6 +6,7 @@ import MainPage from './Pages/MainPage/MainPage';
 import { Routes,Route } from 'react-router-dom';
 import Layout from './components/ReactComponents/Layout/Layout';
 import SinglePlayerBoardPage from './Pages/singlePlayerBoard/singlePlayerBoard';
+import MultiPlayerBoard from './Pages/MultiPlayerBoard/MultiPlayerBoard';
 function App() {
 
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path='/' element={<Layout/>}>
           <Route element={<MainPage/>} path='/'></Route>
           <Route element={<SinglePlayerBoardPage/>} path='/single-player'></Route>
+          <Route element={<MultiPlayerBoard/>} path='/multi-player/:id'></Route>
         </Route>
     </Routes>
   );

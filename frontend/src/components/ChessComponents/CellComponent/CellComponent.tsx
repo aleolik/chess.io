@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useMemo, useState } from 'react'
 import scss from './CellComponent.module.scss'
-import { Cell, availableCoordinates } from '../../../models/Cell'
-import { Colors } from '../../../models/Colors'
+import { Cell, availableCoordinates } from '../../../chess-logic/models/Cell'
+import { Colors } from '../../../chess-logic/models/Colors'
 
 interface CellProps{
     cell : Cell
