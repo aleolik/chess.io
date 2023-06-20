@@ -23,22 +23,15 @@ const BoardComponent : FC<BoardProps> = ({board,setBoard,isWhiteTurn,setIsWhiteT
   const [makeTurnSound] = useSound(makeTurn)
 
   const cellOnClick = (targetCell:Cell) => {
-    // check if you can select other figure than king(your king is not under attack)
-    // if (isWhiteTurn && board.isKingUnderAttack(Colors.WHITE)) {
-    //   const amount = board.findHowManyCellsAreAttacking(Colors.WHITE)
-    //   if (amount <= 1) {
-    //     if (selectedCell && !(targetCell.figure && targetCell.figure.canProtectKing(Colors.WHITE,amount,board,selectedCell))) return;
-    //   }
-    // }
-    // if (isBlackTurn && board.isKingUnderAttack(Colors.BLACK)) {
-    //   const amount = board.findHowManyCellsAreAttacking(Colors.BLACK)
-    //   if (amount <= 1) {
-    //     if (selectedCell && !(targetCell.figure && targetCell.figure.canProtectKing(Colors.BLACK,amount,board,selectedCell))) return;
-    //   }
-    // }
-    if (selectedCell && selectedCell !== targetCell && selectedCell.figure){
+    if (selectedCell && selectedCell !== targetCell && selectedCell.figure && selectedCell.figure.color !== targetCell.figure?.color || (selectedCell?.figure instanceof King && targetCell.figure instanceof Rook && selectedCell.figure.color === targetCell.figure.color)){
       const deepCopyBoard = board.getDeepCopyBoard()
-      if (selectedCell.figure.canMove(selectedCell,targetCell,board,deepCopyBoard)){
+      if (selectedCell.figure.canMove(selectedCell,targetCell,board)){
+        // if (board.kingIsUnderAttack(isWhiteTurn ? Colors.WHITE : Colors.BLACK)){
+        //   if (!selectedCell.figure.canProtectKing(selectedCell,targetCell,isWhiteTurn ? Colors.WHITE : Colors.BLACK,board)){
+        //     return;
+        //   }
+        // }
+        if (deepCopyBoard && !board.kingWillBeUnderAttack(selectedCell,targetCell,deepCopyBoard)) {
           // SWAP 
           if (selectedCell.figure instanceof King && targetCell.figure instanceof Rook && selectedCell.figure.color === targetCell.figure.color) {
             selectedCell.figure.moveFigure(selectedCell,targetCell,board,true)
@@ -54,7 +47,8 @@ const BoardComponent : FC<BoardProps> = ({board,setBoard,isWhiteTurn,setIsWhiteT
             setIsWhiteTurn(true)
             setIsBlackTurn(false)
           }
-      } 
+        }
+      }
     } else {
       if (!targetCell.figure) return;
       if (targetCell.figure.color === Colors.WHITE && !isWhiteTurn) return;

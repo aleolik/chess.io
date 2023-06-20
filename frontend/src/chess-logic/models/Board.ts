@@ -19,6 +19,7 @@ export class Board {
         this.id = v4()
     }
     
+    // get cell,where king is located(takes color as parametr;white-White King;black-Black king)
     public getKingCell(kingColor:Colors) : Cell{
         for (let i = 0;i<this.cells.length;i++){
             for (let j = 0;j<this.cells.length;j++){
@@ -29,55 +30,6 @@ export class Board {
         }
         throw Error("King is must be at the board")
     }
-
-    // public isKingUnderAttack(color : Colors) : boolean{
-    //     const whereIsKing = this.getKingCell(color)
-    //     for (let i = 0;i<this.cells.length;i++){
-    //         for (let j = 0;j<this.cells.length;j++){
-    //             const cell = this.getCell(i,j)
-    //             if (!cell.figure) continue
-    //             if (cell.figure.color === color) continue
-    //             if (cell.figure.canMove(cell,whereIsKing,this)) return true
-    //         }
-    //     }
-
-    //     return false
-    // }
-
-    // public findHowManyCellsAreAttacking(color:Colors) : number {
-    //     let amount = 0
-    //     const whereIsKing = this.getKingCell(color)
-    //     for (let i = 0;i<this.cells.length;i++){
-    //         for (let j = 0;j<this.cells.length;j++){
-    //             const cell = this.getCell(i,j)
-    //             if (!cell.figure) continue
-    //             if (cell.figure.color === color) continue
-    //             if (cell.figure.canMove(cell,whereIsKing,this)) {
-    //                 amount += 1
-    //             }
-    //         }
-    //     }
-
-    //     return amount
-    // }
-
-
-    // public findCellFromWhereFigureIsAttacking(amount :number,color:Colors) : Cell {
-    //     const whereIsKing = this.getKingCell(color)
-    //     for (let i = 0;i<this.cells.length;i++){
-    //         for (let j = 0;j<this.cells.length;j++){
-    //             const cell = this.getCell(i,j)
-    //             if (!cell.figure) continue
-    //             if (cell.figure.color === color) continue
-    //             if (cell.figure.canMove(cell,whereIsKing,this)) return cell
-    //         }
-    //     }
-    //     throw Error("at least 1 figure is attacking!")
-    // }
-
-
-    
-
 
     public initCells(){
         for (let i = 0;i<8;i++){
@@ -95,6 +47,65 @@ export class Board {
         }
     }
 
+    // CHECK on deepCopiedBoard if king will be under the attack if you make this turn.
+    public kingWillBeUnderAttack(fromCell:Cell,targetCell:Cell,deepCopyBoard:Board) : boolean{
+        if (!deepCopyBoard) {
+            throw new Error("DeepCopyBoard can not be null in kingWillBeUnderAttack method!")
+        }
+        if (deepCopyBoard) {
+            const fromCellInNewBoard = deepCopyBoard.getCell(fromCell.i,fromCell.j)    
+            const targetCellInNewBoard = deepCopyBoard.getCell(targetCell.i,targetCell.j)
+
+            if (!fromCellInNewBoard.figure) return true
+            const figureInTargetBefore = targetCellInNewBoard.figure
+            const figureThatIsMakingMove = fromCellInNewBoard.figure
+            console.log(deepCopyBoard)
+            const cellWhereIsKing = deepCopyBoard.getKingCell(figureThatIsMakingMove.color)
+            targetCellInNewBoard.figure = figureThatIsMakingMove
+            fromCellInNewBoard.figure = null
+
+
+            for (let i = 0 ;i<deepCopyBoard.cells.length;i++){
+                for (let j = 0;j<deepCopyBoard.cells.length;j++) {
+                    const cell = deepCopyBoard.getCell(i,j)
+                    if (!cell.figure) continue
+                    if (cell.figure.color === figureThatIsMakingMove.color) continue
+                    if (cell.figure.canMove(cell,cellWhereIsKing,deepCopyBoard)) {
+                        // return state as before
+                        fromCellInNewBoard.figure = figureThatIsMakingMove
+                        targetCellInNewBoard.figure = figureInTargetBefore
+                        return true
+                    }
+                }
+            }
+
+            // return state as before
+            fromCellInNewBoard.figure = figureThatIsMakingMove
+            targetCellInNewBoard.figure = figureInTargetBefore
+
+            return false
+        }
+        
+        return true
+   }
+
+   // CHECK if your king is currently under attack
+   public kingIsUnderAttack(color:Colors) : boolean{
+    const cellWhereIsKing = this.getKingCell(color)
+    for (let i = 0 ;i<this.cells.length;i++){
+        for (let j = 0;j<this.cells.length;j++) {
+            const cell = this.getCell(i,j)
+            if (!cell.figure) continue
+            if (cell.figure.color === color) continue
+            if (cell.figure.canMove(cell,cellWhereIsKing,this)) {
+                return true
+            }
+        }
+    }
+    return false
+   }
+
+    // highligt cells for user where he can move figure from selected cell.
     public highlightCells(selectedCell : Cell) {
         const deepCopyBoard = this.getDeepCopyBoard()
         for (let i = 0;i<this.cells.length;i++){
@@ -102,11 +113,13 @@ export class Board {
             for (let j = 0;j<row.length;j++) {
                 const target = this.cells[i][j]
                 if (selectedCell.figure) {
-                    this.cells[i][j].available = selectedCell.figure.canMove(selectedCell,target,this,deepCopyBoard)
+                    this.cells[i][j].available = selectedCell.figure.canMove(selectedCell,target,deepCopyBoard) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,target,deepCopyBoard)
                 }
             }
         }
     }
+
+    // get deep copied version of the board (for deep check)
     public getDeepCopyBoard<T extends Board>() : T  {
         const newBoard = new Board() as T
         for (let i = 0;i<this.cells.length;i++){
@@ -151,6 +164,7 @@ export class Board {
         
       }
 
+    // get new verison of the board,with the same cells in memory
     public getCopyBoard<T extends Board>() : T {
         const newBoard = new Board() as T
         newBoard.cells = this.cells
@@ -160,6 +174,8 @@ export class Board {
         return this.cells[i][j] 
     }
 
+
+    // add figures to board
     public addFigures() {
         this.addPawns()
         this.addHorses()
@@ -170,6 +186,8 @@ export class Board {
         this.addHorses()    
     }
 
+
+   // add pawns to board
     private addPawns() {
         for (let j = 0;j< 8;j++){
             // black pawn
@@ -179,6 +197,7 @@ export class Board {
         }
     }
 
+    // add kings to board
     private addKings() {
          // black king
          this.cells[0][3].figure =  new King(Colors.BLACK)
@@ -186,6 +205,7 @@ export class Board {
          this.cells[7][3].figure = new King(Colors.WHITE)
     }
 
+    // add queens to board
     private addQueens() {
          // black queen
          this.cells[0][4].figure =  new Queen(Colors.BLACK)
@@ -193,6 +213,7 @@ export class Board {
          this.cells[7][4].figure = new Queen(Colors.WHITE)
     }
 
+    // add rooks to board
     private addRooks() {
          // black rooks
          this.cells[0][0].figure =  new Rook(Colors.BLACK)
@@ -202,7 +223,7 @@ export class Board {
          this.cells[7][7].figure = new Rook(Colors.WHITE)
     }
 
-
+    // add bishops to board
     private addBishops() {
          // black horses
          this.cells[0][2].figure =  new Bishop(Colors.BLACK)
@@ -213,6 +234,7 @@ export class Board {
 
     }
 
+    // add horses to board
     private addHorses() {
         this.cells[0][1].figure =  new Horse(Colors.BLACK)
         this.cells[0][6].figure =  new Horse(Colors.BLACK)
@@ -221,7 +243,7 @@ export class Board {
         this.cells[7][6].figure = new Horse(Colors.WHITE)
     }
 
-
+    // check board's vertical
     public isEmptyVertical(fromCell:Cell,targetCell:Cell) : boolean {
         // not the same column
         if (fromCell.j !== targetCell.j){
@@ -240,6 +262,7 @@ export class Board {
         return true
     }
 
+    // check board's diagonal
     public isEmptyDiagonal(fromCell:Cell,targetCell:Cell) : boolean {
         // main diagonal
         const absI = Math.abs(targetCell.i-fromCell.i)
@@ -257,6 +280,7 @@ export class Board {
         return true
     }
 
+    // check board's horizontal
     public isEmptyHorizontal(fromCell:Cell,targetCell:Cell) : boolean {
         // not the same row
          if (fromCell.i !== targetCell.i){

@@ -12,8 +12,8 @@ export class Queen extends Figure{
         this.img = color === Colors.WHITE ? whiteQueen : blackQueen
     }
 
-    canMove(fromCell:Cell,targetCell:Cell,board:Board,deepCopyBoard:Board): boolean {
-        if (!super.canMove(fromCell,targetCell,board,deepCopyBoard)) return false;
+    canMove(fromCell:Cell,targetCell:Cell,board:Board): boolean {
+        if (!super.canMove(fromCell,targetCell,board)) return false;
 
         if (board.isEmptyVertical(fromCell,targetCell)) return true;
 

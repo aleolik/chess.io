@@ -12,8 +12,8 @@ export class Horse extends Figure{
         this.img = color === Colors.WHITE ? whiteHorse : blackHorse
     }
 
-    canMove(fromCell: Cell,targetCell:Cell,board:Board,deepCopyBoard:Board): boolean {
-        if (!super.canMove(fromCell,targetCell,board,deepCopyBoard)) {
+    canMove(fromCell: Cell,targetCell:Cell,board:Board): boolean {
+        if (!super.canMove(fromCell,targetCell,board)) {
             return false
         }
 
