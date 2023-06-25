@@ -38,9 +38,9 @@ export class Board {
                 let index = i as availableCoordinates
                 let jIndex = j as availableCoordinates
                 if ((i + j) % 2 === 0){
-                    row.push(new Cell(this,index,jIndex,Colors.WHITE,null))
+                    row.push(new Cell(index,jIndex,Colors.WHITE,null))
                 } else {
-                    row.push(new Cell(this,index,jIndex,Colors.BLACK,null))
+                    row.push(new Cell(index,jIndex,Colors.BLACK,null))
                 }
             }
             this.cells.push(row);
@@ -59,7 +59,6 @@ export class Board {
             if (!fromCellInNewBoard.figure) return true
             const figureInTargetBefore = targetCellInNewBoard.figure
             const figureThatIsMakingMove = fromCellInNewBoard.figure
-            console.log(deepCopyBoard)
             const cellWhereIsKing = deepCopyBoard.getKingCell(figureThatIsMakingMove.color)
             targetCellInNewBoard.figure = figureThatIsMakingMove
             fromCellInNewBoard.figure = null
@@ -70,7 +69,7 @@ export class Board {
                     const cell = deepCopyBoard.getCell(i,j)
                     if (!cell.figure) continue
                     if (cell.figure.color === figureThatIsMakingMove.color) continue
-                    if (cell.figure.canMove(cell,cellWhereIsKing,deepCopyBoard)) {
+                    if (cell.figure.canMove(cell,targetCellInNewBoard.figure instanceof King ? targetCellInNewBoard : cellWhereIsKing,deepCopyBoard)) {
                         // return state as before
                         fromCellInNewBoard.figure = figureThatIsMakingMove
                         targetCellInNewBoard.figure = figureInTargetBefore
@@ -89,21 +88,6 @@ export class Board {
         return true
    }
 
-   // CHECK if your king is currently under attack
-   public kingIsUnderAttack(color:Colors) : boolean{
-    const cellWhereIsKing = this.getKingCell(color)
-    for (let i = 0 ;i<this.cells.length;i++){
-        for (let j = 0;j<this.cells.length;j++) {
-            const cell = this.getCell(i,j)
-            if (!cell.figure) continue
-            if (cell.figure.color === color) continue
-            if (cell.figure.canMove(cell,cellWhereIsKing,this)) {
-                return true
-            }
-        }
-    }
-    return false
-   }
 
     // highligt cells for user where he can move figure from selected cell.
     public highlightCells(selectedCell : Cell) {
@@ -111,12 +95,103 @@ export class Board {
         for (let i = 0;i<this.cells.length;i++){
             const row = this.cells[i]
             for (let j = 0;j<row.length;j++) {
-                const target = this.cells[i][j]
+                const target = this.getCell(i,j)
                 if (selectedCell.figure) {
-                    this.cells[i][j].available = selectedCell.figure.canMove(selectedCell,target,deepCopyBoard) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,target,deepCopyBoard)
+                    this.cells[i][j].available = selectedCell.figure.canMove(selectedCell,target,this) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,target,deepCopyBoard)
                 }
             }
         }
+    }
+
+    private kingIsUnderAttack(color:Colors) : boolean{
+        const cellWhereIsKing = this.getKingCell(color)
+        for (let i = 0;i<this.cells.length;i++){
+            for (let j = 0;j<this.cells.length;j++){
+                const cell = this.getCell(i,j)
+                if (!cell.figure) continue;
+                if (cell.figure.color === color) continue
+                if (cell.figure.canMove(cell,cellWhereIsKing,this)) return true
+            }
+        }
+        return false
+    }
+
+    private figureCanMovePrivate(selectedCell : Cell,deepCopyBoard:Board) : boolean {
+        for (let i = 0;i<this.cells.length;i++){
+            const row = this.cells[i]
+            for (let j = 0;j<row.length;j++) {
+                const target = this.getCell(i,j)
+                if (selectedCell.figure) {
+                    if (selectedCell.figure.canMove(selectedCell,target,deepCopyBoard) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,target,deepCopyBoard)) return true
+                }
+            }
+        }
+        return false
+    }
+
+
+    public isMate(color:Colors) : boolean{
+        if (!this.kingIsUnderAttack(color)) return false
+        const deepCopyBoard = this.getDeepCopyBoard()
+        const cellWhereFiguresByColor : Cell[] = []
+        for (let i = 0;i<this.cells.length;i++){
+            const row = this.cells[i]
+            for (let j = 0;j<row.length;j++) {
+                const targetInDeepCopyBoard = deepCopyBoard.getCell(i,j)
+                if (targetInDeepCopyBoard?.figure?.color !== color) continue
+                cellWhereFiguresByColor.push(targetInDeepCopyBoard)
+            }
+        }
+
+        for (let i = 0;i<cellWhereFiguresByColor.length;i++){
+            const selectedCell = cellWhereFiguresByColor[i]
+            for (let j = 0;j<this.cells.length;j++){
+                for (let k = 0;k<this.cells.length;k++) {
+                    const target = deepCopyBoard.getCell(j,k)
+                    if (selectedCell.figure?.canMove(selectedCell,target,deepCopyBoard) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,target,deepCopyBoard)) return false
+                }
+            }
+        }
+        return true
+    }
+
+
+    private onlyKingsExistsOnTheBoard(){
+        for (let i = 0;i<this.cells.length;i++){
+            for (let j = 0 ;j<this.cells.length;j++){
+                const cell = this.getCell(i,j)
+                if (!cell.figure) continue
+                if (!(cell.figure instanceof King)) return false
+            }
+        }
+
+        return true
+    }
+
+    private playerCanMove(color:Colors) : boolean{
+        const deepCopyBoard = this.getDeepCopyBoard()
+        for (let i = 0;i<this.cells.length;i++){
+            for (let j = 0 ;j<this.cells.length;j++){
+                const cell = this.getCell(i,j)
+                if (!cell.figure) continue
+                if (cell.figure.color !== color) continue
+                if (this.figureCanMovePrivate(cell,deepCopyBoard)) return true
+            }
+        }
+        return false
+    }
+    
+    public isTie(color:Colors) : boolean{
+        // tie can be : king is under attack and no moves available or only 2 kings left on the board
+        if (this.onlyKingsExistsOnTheBoard()) {
+            return true
+        }
+
+        if (!this.playerCanMove(color)){
+            return true
+        }
+
+        return false
     }
 
     // get deep copied version of the board (for deep check)
@@ -126,7 +201,7 @@ export class Board {
             const cellArray : Cell[] = []
             for (let j = 0;j<this.cells[i].length;j++){
                 const cellRefernce = this.cells[i][j]
-                const cell = new Cell(newBoard,cellRefernce.i,cellRefernce.j,cellRefernce.color,null)
+                const cell = new Cell(cellRefernce.i,cellRefernce.j,cellRefernce.color,null)
                 if (!cellRefernce.figure) {
                     cellArray.push(cell)
                     continue;
@@ -182,8 +257,7 @@ export class Board {
         this.addKings()
         this.addQueens()
         this.addBishops()
-        this.addRooks()
-        this.addHorses()    
+        this.addRooks()  
     }
 
 

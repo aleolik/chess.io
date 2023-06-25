@@ -3,6 +3,7 @@ import { Colors } from "../models/Colors";
 import { Figure, FigureNames } from "../models/Figure";
 import { Board } from "../models/Board";
 
+
 export class Bishop extends Figure{
     constructor(color:Colors){
         super(color)
@@ -18,6 +19,10 @@ export class Bishop extends Figure{
         if (board.isEmptyDiagonal(fromCell,targetCell)) return true
 
         return false
+    }
+
+    moveFigure(fromCell: Cell, targetCell: Cell, board: Board): void {
+        super.moveFigure(fromCell,targetCell,board)
     }
 
 }

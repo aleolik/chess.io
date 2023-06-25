@@ -46,16 +46,19 @@ export class Pawn extends Figure{
     }
 
     public moveFigure(fromCell: Cell,targetCell:Cell,board:Board): void {
-        this.isFirstTurn = false
         // RULE : When pawn reaches the end of the board,transform it to another fiqure(queen by defalt)
         if ((targetCell.i === 0 && this.color === Colors.WHITE) || (targetCell.i === 7 && this.color === Colors.BLACK)) {
             this.transformPawnToAnotherFiqure(fromCell,targetCell)
+        } else {
+            super.moveFigure(fromCell,targetCell,board)
         }
+        this.isFirstTurn = false
     }
 
     public transformPawnToAnotherFiqure(fromCell : Cell,targetCell : Cell){
         const newFiqure = new Queen(this.color)
-        targetCell.setFigure(newFiqure)
-        fromCell.setFigure(null)
+        targetCell.figure = newFiqure
+        fromCell.figure = null
     }
+
 }

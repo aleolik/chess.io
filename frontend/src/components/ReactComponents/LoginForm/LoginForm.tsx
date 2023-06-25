@@ -6,11 +6,13 @@ import { modalSlice } from '../../../redux/reducers/modalReducer'
 import CustomAlert, { AlertTypes } from '../CustomAlert/CustomAlert'
 import { useAppSelector } from '../../../redux/hooks/useAppSelector'
 import { closeModalWindowAsync } from '../../../redux/AsyncActions/CloseModalWindowAsync'
+import FormNavigationButtons from '../FormNavigationButtons/FormNavigationButtons'
+import Loader from '../Loader/Loader'
 const LoginForm = () => {
     const dispatch = useAppDispatch()
     const [email,setEmail] = useState<string>('')
     const [password,setPassword] = useState<string>('')
-    const userOnError = useAppSelector(state => state.user.userOnError)
+    const {userOnError,userOnLoad} = useAppSelector(state => state.user)
 
     const [passwordError,setPasswordError] = useState<string>('')
     const [emailError,setEmailError] = useState<string>('')
@@ -43,7 +45,12 @@ const LoginForm = () => {
     }
   
     return (
-      <form onSubmit={LoginUser} className={scss.form}>
+      <>
+        <FormNavigationButtons/>
+        {userOnLoad && (
+          <Loader/>
+        )}
+        <form onSubmit={LoginUser} className={scss.form}>
         {userOnError && (
           <CustomAlert type={AlertTypes.Error} message={userOnError}/>
          )}
@@ -63,7 +70,8 @@ const LoginForm = () => {
           <input placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;" onChange={passwordHandler} type="password" className="form-control" aria-label="" aria-describedby="basic-addon1"/>
         </div>
         <button className={scss.btnLogin}>Login</button>
-    </form>
+        </form>
+      </> 
     )
 }
 export default LoginForm

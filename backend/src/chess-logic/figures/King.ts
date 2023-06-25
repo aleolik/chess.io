@@ -5,8 +5,7 @@ import { Board } from "../models/Board";
 import { Rook } from "./Rook";
 
 export class King extends Figure{
-    canSwapWithRook = true
-    doSwap = false
+    isFirstTurn : boolean = true
     constructor(color:Colors){
         super(color)
         this.name = FigureNames.KING
@@ -30,8 +29,19 @@ export class King extends Figure{
         return false 
     }
     
-    swapWithRook(fromCell:Cell,target:Cell,board:Board) : boolean{
-        if (!this.canSwapWithRook) return false
+    canSwapWithRook(fromCell:Cell,target:Cell,board:Board) : boolean{
+        if (!this.isFirstTurn) return false
+
+        // king is not under attack
+        const cellWhereIsKing  = board.getKingCell(this.color)
+        for (let i = 0;i<board.cells.length;i++){
+            for (let j = 0;j<board.cells.length;j++){
+                const cell = board.getCell(i,j)
+                if (!cell.figure) continue
+                if (cell.figure.color === this.color) continue
+                if (cell.figure.canMove(cell,cellWhereIsKing,board)) return false
+            }
+        }
         
         // swap with rooks on the left
         const leftTopCell = board.getCell(0,0)
@@ -115,24 +125,24 @@ export class King extends Figure{
         }
     }
     canMove(fromCell:Cell,targetCell:Cell,board:Board): boolean {
-        this.doSwap = false
-        // can not attack king
-        if (targetCell.figure.name === FigureNames.KING) {
-            return false
+        if (!super.canMove(fromCell,targetCell,board) && !(targetCell.figure instanceof Rook && fromCell.figure instanceof King && targetCell.figure.color === fromCell.figure.color)) return false
+        if (targetCell.figure && targetCell.figure.color === fromCell?.figure?.color) {
+            // rule : swap
+            if (!(targetCell.figure instanceof Rook)) {
+                return false
+            }
         }
 
-        if (board.isEmptyVertical(fromCell,targetCell))  return true
+        if (this.isEmptyVertical(fromCell,targetCell))  return true
 
-        if (board.isEmptyHorizontal(fromCell,targetCell)) return true
+        if (this.isEmptyHorizontal(fromCell,targetCell)) return true
 
-        if (board.isEmptyDiagonal(fromCell,targetCell))  return  true
+        if (this.isEmptyDiagonal(fromCell,targetCell))  return  true
 
         // RULE : You can swap with your's rook if every statement are true
-        if ((this.name === FigureNames.KING && targetCell.figure && targetCell.figure.name === FigureNames.ROOK) && (targetCell.figure.color === this.color)) {
-            if (this.swapWithRook(fromCell,targetCell,board)) {
+        if ((this.name === FigureNames.KING && targetCell.figure && targetCell.figure.name === FigureNames.ROOK) && this.isFirstTurn && (targetCell.figure.color === this.color)) {
+            if (this.canSwapWithRook(fromCell,targetCell,board)) {
                 // find cell,after the swap with rook,that king will be moved in
-                const newKingCell = this.findNewCellByCastle(fromCell,targetCell,board)
-                this.doSwap = true
                 return true
             }
         }
@@ -142,10 +152,8 @@ export class King extends Figure{
         return false;
     }
 
-    moveFigure(fromCell:Cell,targetCell:Cell,board:Board): void {
-        super.moveFigure(fromCell,targetCell,board)
-        this.canSwapWithRook = false
-        if (this.doSwap) {
+    moveFigure(fromCell:Cell,targetCell:Cell,board:Board,doSwap : boolean = false): void {
+        if (this.isFirstTurn && doSwap) {
             const rook = targetCell.figure as Rook
             if (rook.color !== this.color) return;
             
@@ -156,12 +164,12 @@ export class King extends Figure{
                 if (targetCell.j === 0) {
                     // short swap
                     const newCellForRook = board.getCell(7,2)
-                    newCellForRook.setFigure(rook)
+                    newCellForRook.figure = rook
                 }
                 // right rook
                 else {
                     const newCellForRook = board.getCell(7,4)
-                    newCellForRook.setFigure(rook)
+                    newCellForRook.figure = rook
                 }
             }
 
@@ -170,16 +178,21 @@ export class King extends Figure{
                 if (targetCell.j === 0) {
                     // short swap
                     const newCellForRook = board.getCell(0,2)
-                    newCellForRook.setFigure(rook)
+                    newCellForRook.figure = rook
                 }
                 // right rook
                 else {
                     const newCellForRook = board.getCell(0,4)
-                    newCellForRook.setFigure(rook)
+                    newCellForRook.figure = rook
                 }
             }
-            newCellForKing.setFigure(this)
+            newCellForKing.figure = this
+            targetCell.figure = null
+            fromCell.figure = null
+        } else {
+            super.moveFigure(fromCell,targetCell,board)
         }
+        this.isFirstTurn = false
     }
 
-}
+}}

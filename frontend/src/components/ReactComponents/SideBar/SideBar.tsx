@@ -51,12 +51,6 @@ const SideBar = () => {
   return (
     <div className={scss.sidebar}>
         <img onClick={() => navigate('/')} src={chessIoLogo} alt='logo' className={scss.chessIoLogo}></img>
-        {showModal && showWindow === AvailableWindows.Register && (
-            <ModalWindow children={<RegisterForm/>}/>
-        )}
-        {showModal && showWindow === AvailableWindows.Login && (
-            <ModalWindow children={<LoginForm/>}/>
-        )}
         <div>
             <div className={scss.container}>
                 <img src={chessLogo} alt="logo" className={scss.sidebarLogo}/>

@@ -27,6 +27,8 @@ export const LoginUserAction = (email:string,password:string) => {
             if (err.response){
                 const data = err.response.data as {message : string}
                 dispatch(errorLoad(data.message))
+            } else {
+                dispatch(errorLoad('Status code : 500,Server Error'))
             }
         }
     }

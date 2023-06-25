@@ -34,6 +34,17 @@ export class King extends Figure{
     
     canSwapWithRook(fromCell:Cell,target:Cell,board:Board) : boolean{
         if (!this.isFirstTurn) return false
+
+        // king is not under attack
+        const cellWhereIsKing  = board.getKingCell(this.color)
+        for (let i = 0;i<board.cells.length;i++){
+            for (let j = 0;j<board.cells.length;j++){
+                const cell = board.getCell(i,j)
+                if (!cell.figure) continue
+                if (cell.figure.color === this.color) continue
+                if (cell.figure.canMove(cell,cellWhereIsKing,board)) return false
+            }
+        }
         
         // swap with rooks on the left
         const leftTopCell = board.getCell(0,0)
@@ -117,6 +128,7 @@ export class King extends Figure{
         }
     }
     canMove(fromCell:Cell,targetCell:Cell,board:Board): boolean {
+        if (!super.canMove(fromCell,targetCell,board) && !(targetCell.figure instanceof Rook && fromCell.figure instanceof King && targetCell.figure.color === fromCell.figure.color)) return false
         if (targetCell.figure && targetCell.figure.color === fromCell?.figure?.color) {
             // rule : swap
             if (!(targetCell.figure instanceof Rook)) {

@@ -3,17 +3,37 @@ import { useAppDispatch } from '../../../redux/hooks/useAppDispatch'
 import {useAppSelector} from '../../../redux/hooks/useAppSelector'
 import scss from './ModalWindow.module.scss'
 import { modalSlice } from '../../../redux/reducers/modalReducer'
-import FormNavigationButtons from '../FormNavigationButtons/FormNavigationButtons'
+import { Colors } from '../../../chess-logic/models/Colors'
+import {AiOutlineClose} from 'react-icons/ai'
+import whiteWonImg from '../../../assets/media/whiteWon.png'
+import blackWonImg from '../../../assets/media/blackWon.png'
+import tieImg from '../../../assets/media/chessTie.png'
 
 interface ModalWndowProps{
     children : any
+}
+
+
+interface GameStatusWindowProps{
+  isWinner : Colors | null
+}
+export const GameStatusWindow : FC<GameStatusWindowProps> = ({isWinner}) => {
+  return (
+      <div className={scss.gameStatusContainer}>
+          {isWinner ? (
+            <div>{isWinner.charAt(0).toUpperCase()+isWinner.slice(1)} player won!</div>
+          )
+          : (<div>It's a tie!</div>)}
+          <img className={scss.wonImage} src={isWinner ? isWinner === Colors.BLACK ? blackWonImg : whiteWonImg : tieImg} alt='wonIcon'/>
+      </div>
+  )
 }
 
 const ModalWindow : FC<ModalWndowProps> = ({children}) => {
   const rootClasses = [scss.modal]
   const showModal = useAppSelector(state => state.modal.showModal)
   const dispatch = useAppDispatch()
-  const {closeModalWindow,showModalLogin,showModalRegister} = modalSlice.actions
+  const {closeModalWindow} = modalSlice.actions
 
   if (showModal){
     rootClasses.push(scss.active)
@@ -24,9 +44,9 @@ const ModalWindow : FC<ModalWndowProps> = ({children}) => {
   }
 
   return (
-      <div className={rootClasses.join(' ')} onClick={onClick}>
+      <div className={rootClasses.join(' ')}>
         <div className={scss.modal_content} onClick={(e : React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
-          <FormNavigationButtons/>
+          <AiOutlineClose className={scss.closeIcon} onClick={onClick}/>
           {children}
         </div>
       </div>

@@ -2,8 +2,9 @@ import {createSlice,PayloadAction} from '@reduxjs/toolkit'
 
 
 export enum AvailableWindows{
-    "Register"="Register",
-    "Login"="Login",
+    Register="Register",
+    Login="Login",
+    GameStatus="GameStatus",
 }
 export interface IModal {
     showModal : boolean
@@ -27,6 +28,10 @@ export const modalSlice = createSlice({
         showModalRegister(state : IModal){
             state.showModal = true
             state.showWindow = AvailableWindows.Register
+        },
+        showGameStatus(state : IModal){
+            state.showModal = true
+            state.showWindow = AvailableWindows.GameStatus
         },
         closeModalWindow(state : IModal){
             state.showModal = false

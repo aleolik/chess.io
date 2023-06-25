@@ -10,11 +10,7 @@ const Layout = () => {
   return (
     <div className={scss.layout}>
         <SideBar/>
-        {
-          showModal
-          ? (<></>)
-          : (<Outlet></Outlet>)
-        }
+        <Outlet></Outlet>
     </div>
   )
 }

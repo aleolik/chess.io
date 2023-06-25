@@ -8,15 +8,17 @@ import CustomAlert, { AlertTypes } from '../CustomAlert/CustomAlert'
 import { useAppDispatch } from '../../../redux/hooks/useAppDispatch'
 import { useAppSelector } from '../../../redux/hooks/useAppSelector'
 import { RegisterUserAction } from '../../../redux/AsyncActions/Register'
-import { modalSlice } from '../../../redux/reducers/modalReducer'
 import { AiFillEyeInvisible,AiFillEye} from 'react-icons/ai'
 import { closeModalWindowAsync } from '../../../redux/AsyncActions/CloseModalWindowAsync'
+import FormNavigationButtons from '../FormNavigationButtons/FormNavigationButtons'
+import { userSlice } from '../../../redux/reducers/userReducer'
+import Loader from '../Loader/Loader'
 
 const RegisterForm = () => {
 
   const dispatch = useAppDispatch()
-  const {userOnLoad,user,userOnError} = useAppSelector(state => state.user)
-  const {closeModalWindow} = modalSlice.actions
+  const {userOnError,userOnLoad} = useAppSelector(state => state.user)
+  const errorLoad = userSlice.actions.errorLoad
 
   const [email,setEmail] = useState<string>('')
   const [password,setPassword] = useState<string>('')
@@ -28,29 +30,10 @@ const RegisterForm = () => {
 
   const passwordInputRef = useRef<HTMLInputElement | null>(null)
   const buttonPasswordRef = useRef<HTMLButtonElement | null>(null)
-  const [timeInterval,setTimeInterval] = useState<ReturnType<typeof setInterval> | null>(null)
-  const [generatedRandomPassword,setGeneratedRandomPassword] = useState<boolean>(false)
+  const [canGenerateRandomPassword,setCanGenerateRandomPassword] = useState<boolean>(true)
   const [showPassword,setShowPassword] = useState<boolean>(false)
-  const [intervalValue,setIntervalValue] = useState<number>(0)
   const passwordRepeatedInputRef = useRef<HTMLInputElement | null>(null)
 
-  const addSecondToInterval = () => {
-    setIntervalValue(prev => (prev+1))
-  }
-
-  useEffect(() => {
-    if (intervalValue >= 10){
-
-      if (timeInterval){
-        clearInterval(timeInterval)
-      }
-
-      setTimeInterval(null)
-
-      setIntervalValue(0)
-    }
-
-  },[intervalValue])
 
   const showPasswordAction = () => {
     if (passwordInputRef.current){
@@ -63,24 +46,83 @@ const RegisterForm = () => {
       }
     }
   }
+  
+  // onChange triggers
+  const usernameOnChange = (event : ChangeEvent<HTMLInputElement>) => {
+    setUsername(event.target.value)
+    if (event.target.value) {
+      const isErrorInUsername = errorInUsername(event.target.value)
+      if (isErrorInUsername){
+        setUsernameError(isErrorInUsername)
+      } else {
+        if (usernameError) {
+          setUsernameError('')
+        }
+      }
+    }
+  }
+
+  const emailOnChange = (event : ChangeEvent<HTMLInputElement>) => {
+    setEmail(event.target.value)
+    if (event.target.value) {
+      const isEmailError = errorInEmail(event.target.value)
+      if (isEmailError){
+        setEmailError(isEmailError)
+      } else {
+        if (emailError) {
+          setEmailError('')
+        }
+      }
+    }
+  }
+
+  const repeatedPasswordOnChange = (event : ChangeEvent<HTMLInputElement>) => {
+    const msg = "Passwords should be matched"
+    if (event.target.value !== password){
+      setPasswordError(msg)
+    } else {
+      if (passwordError && passwordError === msg) {
+        setPasswordError("")
+      }
+    }
+  }
+
+
+  const passwordOnChange = (event : ChangeEvent<HTMLInputElement>) => {
+    setPassword(event.target.value)
+    if (event.target.value) {
+      const isErrorInPassword = errorInPassword(event.target.value)
+      if (isErrorInPassword){
+        setPasswordError(isErrorInPassword)
+      } else {
+        if (passwordError) {
+          setPasswordError('')
+        }
+      }
+    }
+  }
+
+    
+    
+
 
   const generateRandomPassword = async() => {
     const generatedPassword = await getRandomCorrectPassword()
-    if (generatedPassword){
-      if (passwordInputRef.current && passwordRepeatedInputRef.current){
-        // set value in inputs
-        passwordInputRef.current.value = generatedPassword
-        passwordRepeatedInputRef.current.value = generatedPassword
-        // set state
-        setPassword(generatedPassword)
-
-        setTimeInterval(setInterval(addSecondToInterval,1000))
-        setGeneratedRandomPassword(true)
-        showPasswordAction()
+    if (passwordInputRef.current && passwordRepeatedInputRef.current && generatedPassword){
+      // set value in inputs
+      passwordInputRef.current.value = generatedPassword
+      passwordRepeatedInputRef.current.value = generatedPassword
+      // set state
+      setPassword(generatedPassword)
+      setCanGenerateRandomPassword(false)
+      setTimeout(() => {
+          setCanGenerateRandomPassword(true)
+      },10000);
+      showPasswordAction()
+    } else {
+      if (!generatedPassword){
+        dispatch(errorLoad("Status code : 500,Server error"))
       }
-    }
-    else {
-      // TODO : error message with toastify
     }
   }
 
@@ -110,26 +152,17 @@ const RegisterForm = () => {
 
             return;
         }
-
         await dispatch(RegisterUserAction(username,email,password))
         await dispatch(closeModalWindowAsync())
-
-  }
-
-  const emailHandler = (e : ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value)
-  }
-
-  const passwordHandler = (e : ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value)
-  }
-
-  const usernameHandler = (e : ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value)
   }
 
   return (
-    <form onSubmit={CreateNewUser} className={scss.form}>
+    <>
+      <FormNavigationButtons/>
+      <form onSubmit={CreateNewUser} className={scss.form}>
+        {userOnLoad && (
+          <Loader/>
+        )}
         {userOnError && (
           <CustomAlert type={AlertTypes.Error} message={userOnError}/>
          )}
@@ -140,13 +173,13 @@ const RegisterForm = () => {
           <div className="input-group-prepend">
             <span className="input-group-text" id="inputGroup-sizing-default">Username</span>
           </div>
-          <input onChange={usernameHandler}  type="text" className="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default"/>
+          <input onChange={usernameOnChange}  type="text" className="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default"/>
         </div>
         {emailError && (
           <CustomAlert type={AlertTypes.Error} message={emailError}/>
         )}
         <div className="input-group mb-3">
-          <input onChange={emailHandler} type="text" className="form-control" placeholder="Email Adress" aria-label="Recipient's username" aria-describedby="basic-addon2"/>
+          <input onChange={emailOnChange} type="text" className="form-control" placeholder="Email Adress" aria-label="Recipient's username" aria-describedby="basic-addon2"/>
           <div className="input-group-append">
             <span className="input-group-text" id="basic-addon2">@gmail.com</span>
           </div> 
@@ -156,19 +189,20 @@ const RegisterForm = () => {
           <CustomAlert type={AlertTypes.Error} message={passwordError}/>
         )}
         <div className="input-group mb-3">
-        <input placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;"  ref={passwordInputRef}  onChange={passwordHandler} type="password" className="form-control" aria-label="" aria-describedby="basic-addon1"/>
+        <input placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;"  ref={passwordInputRef}  onChange={passwordOnChange} type="password" className="form-control" aria-label="" aria-describedby="basic-addon1"/>
           <div className='input-group-prepend'>
-             <button disabled={timeInterval !== null ? true : false} ref={buttonPasswordRef} onClick={generateRandomPassword} className="btn btn-outline-primary" type="button">Generate Random Password</button>
+             <button disabled={canGenerateRandomPassword ? false : true} ref={buttonPasswordRef} onClick={generateRandomPassword} className="btn btn-outline-primary" type="button">Generate Random Password</button>
           </div>
           <div className="input-group-append">
             <span className="input-group-text" id="basic-addon2" onClick={showPasswordAction}>{showPassword ? <AiFillEyeInvisible/> : <AiFillEye/>}</span>
           </div>
         </div>
         <div className="input-group mb-3">
-          <input placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;"  ref={passwordRepeatedInputRef} type="password" className="form-control"  aria-label="" aria-describedby="basic-addon1"/>
+          <input placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;" onChange={repeatedPasswordOnChange}  ref={passwordRepeatedInputRef} type="password" className="form-control"  aria-label="" aria-describedby="basic-addon1"/>
         </div>
         <button className={scss.btnRegister}>Create User</button>
-    </form>
+      </form>
+    </>
   )
 }
 

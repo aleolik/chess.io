@@ -1,8 +1,13 @@
-import React from 'react'
+import React,{FC, useState}from 'react'
 import scss from './MultiPlayerBoard.module.scss'
-const MultiPlayerBoard = () => {
+import { Board } from '../../chess-logic/models/Board'
+import MultiPlayerBoardComponent from '../../components/ChessComponents/MultiPlayerBoardComponent/MultiPlayerBoardComponent'
+
+
+const MultiPlayerBoard  = () => {
+  const [board,setBoard] = useState<Board>(new Board())
   return (
-    <div>multiPLayerBoard</div>
+    <MultiPlayerBoardComponent board={board} setBoard={setBoard}/>
   )
 }
 

@@ -1,4 +1,6 @@
+import { AxiosError } from 'axios'
 import axiosPublic from '../../axios/publicInstance'
+import { useAppDispatch } from '../../redux/hooks/useAppDispatch'
 
 export const getRandomCorrectPassword = async() : Promise<string> => {
     const url = '/user/random-password'
@@ -13,6 +15,7 @@ export const getRandomCorrectPassword = async() : Promise<string> => {
 
         return ''
     } catch (error) {
+
         return ''
     }
 } 

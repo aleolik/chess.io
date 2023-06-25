@@ -31,6 +31,9 @@ export const userSlice = createSlice({
             state.userOnError = ''
             state.user = null
             state.userOnLoad = false
+        },
+        refreshUserOnError(state : userState){
+            state.userOnError = ''
         }
     }
 })

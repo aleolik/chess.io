@@ -21,6 +21,7 @@ $maxWidth:560px;
     align-items: center;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .modal.active{
@@ -36,4 +37,29 @@ $maxWidth:560px;
         height: 100vh;
         width: 100vw;
     }
+}
+
+.closeIcon{
+    position: absolute;
+    top: 1vh;
+    right: 1vw;
+    color: black;
+    font-size: 30px;
+
+    &:hover{
+        font-size: 40px;
+        color: red;
+    }
+}
+
+.gameStatusContainer{
+    font-size: 30px;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+.wonImage{
+    width: 20vw;
+    height: 20vw;
 }

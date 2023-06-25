@@ -45,6 +45,26 @@ const CellComponent : FC<CellProps> = ({cell,onClick,selectedCell}) => {
 
   },[selectedCell])
 
+
+  const onDragStart = (e  : React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+  }
+
+  const onDragLeave = (e  : React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+  }
+
+  const onDragEvent = (e  : React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+  }
+
+  const onDrop = (e  : React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+  } 
+
+  const onDragEnd = (e  : React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+  }
   return (
     <div onClick={() => onClick(cell)} style={{'background':cell.available && cell.figure && selectedCell ? 'lightgreen' : ''}} className={cellStyles.join(' ')}>
           {/* first column */}
@@ -56,7 +76,11 @@ const CellComponent : FC<CellProps> = ({cell,onClick,selectedCell}) => {
             <div className={scss.y_cordinat}>{convertNumToLetterByChessRules(cell.j)}</div>
           )}
           {cell.figure?.img && (
-            <img className={scss.figure} src={cell.figure.img} alt='figure'></img>
+            <div draggable={true}>
+              <img
+              className={scss.figure} src={cell.figure.img} alt='figure'>
+              </img>
+            </div>
           )}
           {selectedCell && cell.available && !cell.figure && (
             <div className={scss.available}></div>

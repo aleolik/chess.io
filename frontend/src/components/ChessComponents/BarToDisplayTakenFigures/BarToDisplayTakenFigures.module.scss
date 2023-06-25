@@ -1,0 +1,17 @@
+@import '../../../App.scss';
+.bar{
+    display: flex;
+    width: 30vw;
+    height: 96px;
+    border: 2px solid aqua;
+    flex-direction: row;
+    flex-wrap: wrap;
+    background-color: $primary;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-radius: 20px;
+}
+.figureInBar{
+    width: 48px;
+    height: 48px;
+}
