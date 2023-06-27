@@ -14,10 +14,10 @@ userRotuer.post('/register',userController.register)
 userRotuer.post('/login',userController.login)
 // gets data by token
 userRotuer.get('/auth',authMiddleware,userController.check)
-// change user data(only yourself)
-userRotuer.put('/change-user/:id',authMiddleware,userController.changeUserData)
 // get random password for creating username
 userRotuer.get('/random-password',userController.generateRandomPassword)
+// logout
+userRotuer.post('/logout',authMiddleware,userController.logout)
 
 // admin router
 userRotuer.use('/admin',checkRoleMiddleware(AVAILABLE_ROLES.ADMIN_ROLE),userAdminRouter)

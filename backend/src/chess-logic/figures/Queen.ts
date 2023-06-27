@@ -20,4 +20,8 @@ export class Queen extends Figure{
 
         return false;
     }
+
+    moveFigure(fromCell: Cell, targetCell: Cell, board: Board): void {
+        super.moveFigure(fromCell,targetCell,board)
+    }
 }

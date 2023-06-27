@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import scss from './SideBar.module.scss'
 import { useAppDispatch } from '../../../redux/hooks/useAppDispatch'
 import { useAppSelector } from '../../../redux/hooks/useAppSelector'
@@ -12,6 +12,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import chessLogo from '../../../assets/media/chessLogo.png'
 import { isMobile } from 'react-device-detect'
 import chessIoLogo from '../../../assets/media/chessio-logo.png'
+import useCookie from '../../../hooks/useCookie'
 
 interface ICustomLink{
     text : string,
@@ -30,6 +31,9 @@ const SideBar = () => {
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
     const doLogout = useLogout()
+    const user = useAppSelector(state => state.user)
+
+    const token = useCookie("token",user)
 
     const userLogout = (e : React.MouseEvent<HTMLButtonElement>) => {
         doLogout()
@@ -46,15 +50,13 @@ const SideBar = () => {
     dispatch(showModalLogin())
     }   
 
-   const user = useAppSelector(state => state.user.user)
-
   return (
     <div className={scss.sidebar}>
         <img onClick={() => navigate('/')} src={chessIoLogo} alt='logo' className={scss.chessIoLogo}></img>
         <div>
             <div className={scss.container}>
                 <img src={chessLogo} alt="logo" className={scss.sidebarLogo}/>
-                {user
+                {token
                 ? (<button onClick={userLogout} className={scss.sidebarButton}>Logout</button>)
                 :(
                     <div style={{'display':'flex','justifyContent':'center','flexDirection':'column'}}>

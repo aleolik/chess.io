@@ -1,16 +1,16 @@
 
 import { NextFunction,Request,Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { IUserFromClient } from '../interfaces'
+import { IRequestWithUser, IUserFromClient } from '../interfaces'
 
-export default function(req : Request,res : Response,next : NextFunction){
+export default function(req : IRequestWithUser,res : Response,next : NextFunction){
 
     if (req.method === 'OPTIONS'){
         return next()
     }
 
     try {
-        const token = req.headers.authorization.split(' ')[1]
+        const token = req.cookies.token
         if (!token){
            return res.status(401).json({"message":"Unathorized"})
         }
@@ -19,12 +19,15 @@ export default function(req : Request,res : Response,next : NextFunction){
 
         // wrong data
         if (!user.email || !user.id || !user.username) {
-            return res.status(401).json({"message":"Unathorized"})
+            return res.clearCookie("token").status(401).json({"message":"Unathorized"})
         }
 
-        return next(user)
+        req.user = user
+
+
+        return next()
     } catch (e) {
-        return res.status(401).json({"message":"Unathorized"})
+        return res.clearCookie("token").status(401).json({"message":"Unathorized"})
     }
 
 }

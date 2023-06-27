@@ -21,5 +21,5 @@ export interface IUserFromClient{
     email : string,
 }
 export interface IRequestWithUser extends Request{
-    user : IUserFromClient
+    user : IUserFromClient | undefined
 }

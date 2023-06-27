@@ -56,12 +56,21 @@ class userController{
                 newUser.username
             )
             
-            return res.json({"token":token})
+            return res.cookie("token",token,{
+                maxAge : 100000,
+                sameSite : 'lax',
+                httpOnly : true
+            })
+            .status(200)
+            .json({"token":token})
+
         } catch(error){
-            console.log(" catch register is being called")
             return next(ApiError.badRequest(error))
         }
         
+    }
+    logout(req : Request,res : Response,next : NextFunction){
+        return res.clearCookie("token").status(200).send("token cookie was cleant")
     }
     async login(req : Request,res : Response,next : NextFunction){
         try {
@@ -92,75 +101,33 @@ class userController{
                 user.username
             )
             
-            return  res.json({"token":token})
+            return res.cookie("token",token,{
+                maxAge : 100000,
+                sameSite : 'lax',
+                httpOnly : true
+            })
+            .status(200)
+            .json({"token":token})
         } catch (e) {
             return next(ApiError.badRequest(e))
         }
     }
 
-    async changeUserData(req : IRequestWithUser,res : Response,next : NextFunction){
-        try {
-            const id = req.params?.id
-            // TODO : ability to change email and password also
-            const {
-                username,
-                email,
-            } = req.body
-            
-            const userByToken = req.user
-                
-            if (!id){
-                return next(ApiError.badRequest('id was not provided'))
-            }
-
-            if (userByToken.id !== parseInt(id)){
-                return next(ApiError.badRequest('You can only change personal info!'))
-            }
-    
-            const user = await userModel.findOne({where:{id:id}})
-    
-            if (!user){
-                return next(ApiError.badRequest(`user with id : ${id} does not exist!`))
-            }
-            
-            // check if username is free
-            if (req.user.username !== username){
-                const ifUsernameExists = await userModel.findOne({where:{username:username}})
-                if (ifUsernameExists) {
-                    return next(ApiError.badRequest(`account with username : '${username}' already exists!`))
-                }
-            }
-            // check if email is free
-            if (req.user.email !== email){
-                const ifEmailExists = await userModel.findOne({where:{email:email}})
-                if (ifEmailExists) {
-                    return next(ApiError.badRequest(`account with email : '${email}' already exists!`))
-                }
-            }
-
-            // TODO : check user data
-
-            
-            // everything is correct,update user data
-            await user.update({
-                username : username,
-                email : email,
-            })
-    
-            return res.json({"user":user})
-        } catch (e) { 
-            next(ApiError.badRequest(e))
-        }
-    }
-
-    async check(user : IUserFromClient,req : Request,res : Response,next : NextFunction){
+    async check(req : IRequestWithUser,res : Response,next : NextFunction){
+        const user = req.user
         try {
             const token = generateToken(
                 user.id,
                 user.email,
                 user.username,
             )
-            return res.json({"token":token})
+            return res.cookie("token",token,{
+                maxAge : 100000,
+                sameSite : 'lax',
+                httpOnly : true
+            })
+            .status(200)
+            .json({"token":token})
         } catch (e) {
            next(ApiError.badRequest(e?.message))
         }

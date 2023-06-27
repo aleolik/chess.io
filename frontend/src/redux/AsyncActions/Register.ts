@@ -1,28 +1,28 @@
 import { AppDispatch } from "../store/store"
-import axiosPublic from '../../axios/publicInstance'
 import { userSlice } from "../reducers/userReducer"
 import { IUser } from "../../interfaces/IUser"
 import jwtDecode from "jwt-decode"
 import { AxiosError, AxiosResponse } from "axios"
+import userInstance from "../../axios/userInstance"
 
-export const RegisterUserAction = (username:string,email:string,password:string,img?:string) => {
+
+
+export const RegisterUserAction = (username:string,email:string,password:string) => {
 
     const {startLoad,errorLoad,userLoad} = userSlice.actions
 
     return async (dispatch:AppDispatch) : Promise<void> => {
-        const url = '/user/register'
+        const url = '/register'
         try {
             dispatch(startLoad())
-            const info = await axiosPublic.post(url,{
+            const res = await userInstance.post(url,{
                 "username" : username,
                 "password":password,
                 "email" : email,
-                "img" : img,
-            }) as AxiosResponse
-            const token : string = info.data?.token
-            const user : IUser = jwtDecode(token)
-            dispatch(userLoad(user))
-            localStorage.setItem("token",token)
+            }) as AxiosResponse 
+           const token : string = res.data.token as string
+           const user : IUser = jwtDecode(token)
+           dispatch(userLoad(user))
         } catch (error) {
             const err = error as AxiosError
             if (err.response){

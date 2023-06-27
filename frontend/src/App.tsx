@@ -1,7 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import css from './App.module.css';
-import BoardComponent from './components/ChessComponents/BoardComponent/BoardComponent';
-import SideBar from './components/ReactComponents/SideBar/SideBar';
+import React, { useEffect } from 'react';
 import MainPage from './Pages/MainPage/MainPage';
 import { Routes,Route } from 'react-router-dom';
 import Layout from './components/ReactComponents/Layout/Layout';
@@ -12,8 +9,28 @@ import { AvailableWindows } from './redux/reducers/modalReducer';
 import RegisterForm from './components/ReactComponents/RegisterForm/RegisterForm';
 import LoginForm from './components/ReactComponents/LoginForm/LoginForm';
 import ModalWindow from './components/ReactComponents/ModalWindow/ModalWindow';
+import { IUser } from './interfaces/IUser';
+import jwtDecode from 'jwt-decode';
+import { userSlice } from './redux/reducers/userReducer';
+import { useAppDispatch } from './redux/hooks/useAppDispatch';
+import userInstance from './axios/userInstance';
 function App() {
   const {showModal,showWindow} = useAppSelector(state => state.modal)
+  const userLoad = userSlice.actions.userLoad
+  const dispatch = useAppDispatch()
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token){
+      // userInstance.get("/user/check").then((res) => {
+      //   const data = res.data as {token : string}
+      //   const user : IUser = jwtDecode(data.token)
+      //   dispatch(userLoad(user))
+      // })
+    }
+  },[])
+
+
+
   return (
     <>
         {showModal && showWindow === AvailableWindows.Register && (

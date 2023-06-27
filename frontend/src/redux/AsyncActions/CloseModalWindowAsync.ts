@@ -5,8 +5,8 @@ export const closeModalWindowAsync = () => {
 
     const closeModalWindow = modalSlice.actions.closeModalWindow
     return async (dispatch:AppDispatch,getState : () => RootState) => {
-        const userOnError = getState().user.userOnError
-        if (userOnError === '') {
+        const {userOnError,user} = getState().user
+        if (user && !userOnError) {
             dispatch(closeModalWindow())
         }
     }

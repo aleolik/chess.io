@@ -1,8 +1,9 @@
 import { NextFunction,Request,Response } from "express";
 import { Board } from "../models/Board";
+import { IRequestWithUser, IUserFromClient } from "../../interfaces";
 
 class BoardController{
-    getNewBoard(req : Request,res : Response,next : NextFunction){
+    getNewBoard(Request : IRequestWithUser,res : Response,next : NextFunction){
         const board = new Board()
         board.initCells()
         board.addFigures()

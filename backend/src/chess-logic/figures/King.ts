@@ -195,4 +195,4 @@ export class King extends Figure{
         this.isFirstTurn = false
     }
 
-}}
+}

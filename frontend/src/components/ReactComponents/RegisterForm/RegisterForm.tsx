@@ -115,6 +115,9 @@ const RegisterForm = () => {
       // set state
       setPassword(generatedPassword)
       setCanGenerateRandomPassword(false)
+      if (passwordError) {
+        setPasswordError("")
+      }
       setTimeout(() => {
           setCanGenerateRandomPassword(true)
       },10000);

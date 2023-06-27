@@ -1,14 +1,20 @@
 import { useAppDispatch } from "../redux/hooks/useAppDispatch"
 import { userSlice } from "../redux/reducers/userReducer"
+import removeCookie from '../utils/removeCookie'
+import userInstance from "../axios/userInstance"
+
 
 type useLogout = () => () => void
+
+
 
 export const useLogout : useLogout = () => {
     const dispatch = useAppDispatch()
     const doLogout = () : void => {
         const logout = userSlice.actions.logout
-        dispatch(logout())
-        localStorage.removeItem("token")
+        userInstance.post("/logout").then(() => {
+            dispatch(logout())
+        })
     }
 
     return doLogout
