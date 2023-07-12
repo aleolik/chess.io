@@ -12,7 +12,8 @@ export const useLogout : useLogout = () => {
     const dispatch = useAppDispatch()
     const doLogout = () : void => {
         const logout = userSlice.actions.logout
-        userInstance.post("/logout").then(() => {
+        userInstance.post("/user/logout").then(() => {
+        }).finally(() => {
             dispatch(logout())
         })
     }

@@ -1,5 +1,15 @@
-import { IUser } from "../interfaces"
-import { WebSocket } from "ws"
+import { Colors } from "../chess-logic/models/Colors";
+import { IUser } from "./IUser";
+
+
+
+export interface IWebSocketState{
+    ws : WebSocket | null,
+    id : string | null,
+    user : IUser | null,
+    inQueue : boolean,
+    color : Colors | null
+}
 
 export enum SocketMethods {
     // when 2 websockets are active they recive lobbyId
@@ -17,24 +27,4 @@ export enum SocketMethods {
         2)cells are already with a made move,so send it to client
     */
     makeMove="makeMove",
-}
-export interface IMsg {
-    method : string
-    [key : string] : unknown
-}
-export interface customWebSocket extends WebSocket {
-    inQueue : boolean
-    id : string
-    user : IUser
-    color? : Colors
-    currentMove? : Colors
-    lobbyId? : string
-}
-
-
-
-
-export enum Colors {
-    WHITE="white",
-    BLACK="black",
 }

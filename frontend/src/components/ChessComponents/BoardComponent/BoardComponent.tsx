@@ -32,6 +32,7 @@ interface BoardProps{
   setBlackTakenFigures : Dispatch<SetStateAction<Figure[]>>
 }
 const BoardComponent : FC<BoardProps> = ({board,setBoard,isWhiteTurn,setIsWhiteTurn,isBlackTurn,setIsBlackTurn,selectedCell,setSelectedCell,isWinner,setIsWinner,blackTakenFigures,setBlackTakenFigures,whiteTakenFigures,setWhiteTakenFigures}) => {
+  const [deepCopiedBoard,setDeepCopiedBoard] = useState<Board>(new Board())
   const [makeTurnSound] = useSound(makeTurn)
   const dispatch = useAppDispatch()
   const {showModal,showWindow} = useAppSelector(state => state.modal)
@@ -50,14 +51,6 @@ const BoardComponent : FC<BoardProps> = ({board,setBoard,isWhiteTurn,setIsWhiteT
     }
   },[isWhiteTurn,isBlackTurn])
 
-  useEffect(() => {
-    console.log(board.isTie(isWhiteTurn ? Colors.WHITE : Colors.BLACK))
-  },[isWhiteTurn,isBlackTurn])
-
-  useEffect(() => {
-    console.log(blackTakenFigures)
-    console.log(whiteTakenFigures)
-  },[blackTakenFigures,whiteTakenFigures])
   const cellOnClick = (targetCell:Cell) => {
     if (isWinner) return;
     const deepCopyBoard = board.getDeepCopyBoard()
@@ -113,7 +106,7 @@ const BoardComponent : FC<BoardProps> = ({board,setBoard,isWhiteTurn,setIsWhiteT
   },[selectedCell])
   
   return (
-    <div className={scss.boardContainer}>
+    <div>
         <BarToDisplayTakenFigures takenFigures={whiteTakenFigures} color={Colors.WHITE}/>
         {showModal && showWindow === AvailableWindows.GameStatus && (
           <ModalWindow children={<GameStatusWindow isWinner={isWinner}/>}/>

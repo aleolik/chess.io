@@ -1,6 +1,5 @@
 import { Router } from "express"
 import userController from "../controllers/userController"
-import checkRoleMiddleware from "../middleware/checkRoleMiddleware"
 import authMiddleware from "../middleware/authMiddleware"
 import userAdminRouter from "./userAdminRouter"
 import { AVAILABLE_ROLES } from "../models/User"
@@ -20,7 +19,7 @@ userRotuer.get('/random-password',userController.generateRandomPassword)
 userRotuer.post('/logout',authMiddleware,userController.logout)
 
 // admin router
-userRotuer.use('/admin',checkRoleMiddleware(AVAILABLE_ROLES.ADMIN_ROLE),userAdminRouter)
+userRotuer.use('/admin',userAdminRouter)
 
 
 export default userRotuer

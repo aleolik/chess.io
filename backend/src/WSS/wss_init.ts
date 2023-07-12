@@ -1,58 +1,9 @@
 import CreateWebSocketServer from 'express-ws'
 import {Application}from 'express'
-import { WebSocketServer,WebSocket  } from 'ws'
-import { SocketMethods } from './wss_interfaces'
-import { IUser } from '../interfaces'
-
-interface IMsg {
-    id  : number
-    method : string
-    [key : string] : unknown
-}
-
-interface customWebSocket extends WebSocket {
-    inQueue : boolean
-    id : string
-    user : IUser
-}
-
-const connectionHandler = (ws : customWebSocket,msg:IMsg) => {
-   const user = msg.user as IUser
-   ws.inQueue = false
-   ws.user = user
-   ws.id = user.id.toString()
-}
-const setClientQueueStatusToActive = (ws : customWebSocket) => {
-    ws.inQueue = true
-}
-const setClientQueueStatusToUnactive = (ws : customWebSocket) => {
-    ws.inQueue = false
-}
-const findSessionForClient = (aWSS : WebSocketServer,ws:customWebSocket) => {
-    aWSS.clients.forEach((client) => {
-        const currentWS = Object.create(client) as customWebSocket
-        if (ws.id !== currentWS.id) {
-            if (currentWS.inQueue){
-                const lobbyId = Date.now().toString(16)
-                // At least 2 players are ready,so create a lobby for them
-                currentWS.send(JSON.stringify({
-                    lobbyId : lobbyId,
-                    method : SocketMethods.getLobby,
-                    // opponent user
-                    user : ws.user,
-                }))
-                currentWS.inQueue = false
-                ws.send(JSON.stringify({
-                    lobbyId : lobbyId,
-                    method : SocketMethods.getLobby,
-                    // opponent user
-                    user : currentWS.user
-                }))
-                ws.inQueue = false
-            }
-        }  
-    })
-}
+import { WebSocket  } from 'ws'
+import { IMsg, SocketMethods,customWebSocket } from './wss_interfaces'
+import {connectionHandler,setClientQueueStatusToActive,setClientQueueStatusToUnactive,findSessionForClient} from './wss_logic'
+import { makeMove } from './wss_game_logic'
 
 
 const initalizeWebSocketServer = (app:Application) => {
@@ -73,8 +24,10 @@ const initalizeWebSocketServer = (app:Application) => {
                     break;
                 case SocketMethods.endQueue:
                     // user ended a query
-
                     setClientQueueStatusToUnactive(ws as customWebSocket)
+                    break;
+                case SocketMethods.makeMove:
+                    makeMove(ws as customWebSocket,parsedMessage,aWSS)
                     break;
                 default:
                     break;

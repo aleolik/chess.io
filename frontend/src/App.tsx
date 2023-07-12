@@ -14,20 +14,21 @@ import jwtDecode from 'jwt-decode';
 import { userSlice } from './redux/reducers/userReducer';
 import { useAppDispatch } from './redux/hooks/useAppDispatch';
 import userInstance from './axios/userInstance';
+import { useWebSocket } from './hooks/useWebSocket';
 function App() {
   const {showModal,showWindow} = useAppSelector(state => state.modal)
   const userLoad = userSlice.actions.userLoad
   const dispatch = useAppDispatch()
   useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (token){
-      // userInstance.get("/user/check").then((res) => {
-      //   const data = res.data as {token : string}
-      //   const user : IUser = jwtDecode(data.token)
-      //   dispatch(userLoad(user))
-      // })
-    }
+      userInstance.get("/user/auth").then((res) => {
+        const token = res.data.token 
+        const user = jwtDecode(token) as IUser
+        dispatch(userLoad(user))
+      }).catch((err) => {
+
+      })
   },[])
+  useWebSocket()
 
 
 

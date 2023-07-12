@@ -26,7 +26,7 @@ const FormNavigationButtons  = () => {
   if (userOnError){
     setTimeout(() => {
       dispatch(refreshUserOnError())
-    },5000);
+    },3000);
   }
  },[userOnError])
   

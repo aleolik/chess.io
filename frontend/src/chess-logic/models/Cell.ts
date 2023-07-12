@@ -18,8 +18,9 @@
             this.i = i; // row
             this.j = j; // column
             this.color = color;
-            this.available = figure ? false : true
+            this.available = false
             this.id = v4()
+            this.figure = figure
         }
 
 

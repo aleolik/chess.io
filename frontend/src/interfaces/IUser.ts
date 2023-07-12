@@ -1,3 +1,5 @@
+import { Colors } from "../chess-logic/models/Colors"
+
 export interface IUser {
     id : string,
     username : string,
@@ -9,3 +11,4 @@ export interface userState {
     userOnError : string,
     userOnLoad : boolean,
 }
+

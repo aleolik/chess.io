@@ -14,7 +14,7 @@ const BarToDisplayTakenFigures : FC<BarToDisplayTakenFiguresProps> = ({takenFigu
             return (
                 <>
                     {figure.img && (
-                        <img className={scss.figureInBar} src={figure.img} alt='figure'></img>
+                        <img key={figure.id} className={scss.figureInBar} src={figure.img} alt='figure'></img>
                     )}
                 </>
             )

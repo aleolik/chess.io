@@ -12,7 +12,7 @@ export const RegisterUserAction = (username:string,email:string,password:string)
     const {startLoad,errorLoad,userLoad} = userSlice.actions
 
     return async (dispatch:AppDispatch) : Promise<void> => {
-        const url = '/register'
+        const url = '/user/register'
         try {
             dispatch(startLoad())
             const res = await userInstance.post(url,{

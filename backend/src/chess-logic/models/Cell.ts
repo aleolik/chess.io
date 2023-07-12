@@ -16,8 +16,9 @@ export type availableCoordinates = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
             this.i = i; // row
             this.j = j; // column
             this.color = color;
-            this.available = figure ? false : true
+            this.available = false
             this.id = v4()
+            this.figure = figure
         }
 
 

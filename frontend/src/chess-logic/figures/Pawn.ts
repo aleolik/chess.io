@@ -20,7 +20,8 @@ export class Pawn extends Figure{
         if (!super.canMove(fromCell,targetCell,board)) {
             return false
         }
-        // BLACK = MOVE TO BOTTOM,WHITE = MOVE TO TOP
+
+        // PIECES MOVE TO TOP
         const direction = this.color === Colors.BLACK ? 1 : -1
         const firstDirection = this.color === Colors.BLACK ? 2 : -2
 

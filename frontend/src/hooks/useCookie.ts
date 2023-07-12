@@ -5,7 +5,7 @@ import userInstance from '../axios/userInstance';
 function useCookie(cookieName : string,dependencies : any | Array<any>) : string {
     const [cookieToReturn,setCookieToReturn] = useState<string>('')
     function handleCookieChange() {
-        const url = '/auth'
+        const url = '/user/auth'
         userInstance.get(url).then((res) => {
           const token = res.data.token as string
           setCookieToReturn(token)

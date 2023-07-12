@@ -1,6 +1,6 @@
-import { NextFunction,Request,Response } from "express";
+import { NextFunction,Response } from "express";
 import { Board } from "../models/Board";
-import { IRequestWithUser, IUserFromClient } from "../../interfaces";
+import { IRequestWithUser, } from "../../interfaces";
 
 class BoardController{
     getNewBoard(Request : IRequestWithUser,res : Response,next : NextFunction){

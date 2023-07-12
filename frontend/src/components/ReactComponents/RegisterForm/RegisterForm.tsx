@@ -121,7 +121,9 @@ const RegisterForm = () => {
       setTimeout(() => {
           setCanGenerateRandomPassword(true)
       },10000);
-      showPasswordAction()
+      if (!showPassword){
+        showPasswordAction()
+      }
     } else {
       if (!generatedPassword){
         dispatch(errorLoad("Status code : 500,Server error"))
@@ -197,7 +199,7 @@ const RegisterForm = () => {
              <button disabled={canGenerateRandomPassword ? false : true} ref={buttonPasswordRef} onClick={generateRandomPassword} className="btn btn-outline-primary" type="button">Generate Random Password</button>
           </div>
           <div className="input-group-append">
-            <span className="input-group-text" id="basic-addon2" onClick={showPasswordAction}>{showPassword ? <AiFillEyeInvisible/> : <AiFillEye/>}</span>
+            <span className="input-group-text" id="basic-addon2" onClick={showPasswordAction}>{showPassword ? <AiFillEye/> : <AiFillEyeInvisible/>}</span>
           </div>
         </div>
         <div className="input-group mb-3">

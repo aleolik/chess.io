@@ -4,7 +4,7 @@ import axios from 'axios'
     Permissions : For logged in user
 */
 const userInstance = axios.create({
-    baseURL:"http://localhost:5000/api/user",
+    baseURL:"http://localhost:5000/api",
     timeout : 3000,
     headers : {
         'Content-Type':'application/json',

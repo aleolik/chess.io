@@ -14,9 +14,11 @@ import { FigureNames } from "./Figure"
 export class Board {
     cells : Cell[][] = []
     id : string;
+    reverseDeskForBlackPlayer : boolean
     
-    constructor(){
+    constructor(reverseDeskForBlackPlayer:boolean=false){
         this.id = v4()
+        this.reverseDeskForBlackPlayer = false
     }
     
     // get cell,where king is located(takes color as parametr;white-White King;black-Black king)
@@ -45,6 +47,30 @@ export class Board {
             }
             this.cells.push(row);
         }
+    }
+
+    public getCellsPropertiesWithoutImg() : any{
+        const arr = []
+        for (let i = 0;i<this.cells.length;i++){
+            const newArr = []
+            for (let j = 0;j<this.cells.length;j++){
+                const currentCell = this.getCell(i,j)
+                newArr.push({
+                    i : currentCell.i,
+                    j : currentCell.j,
+                    figure : currentCell.figure ? {
+                        name : currentCell.figure.name,
+                        color : currentCell.figure.color,
+                        id : currentCell.figure.id
+                    } : null,
+                    color : currentCell.color,
+                    id : currentCell.id,
+                    available : currentCell.available
+                })
+            }
+            arr.push(newArr)
+        }
+        return arr
     }
 
     // CHECK on deepCopiedBoard if king will be under the attack if you make this turn.
@@ -103,6 +129,15 @@ export class Board {
         }
     }
 
+    // for ui
+    public clearAvailablePropertyInCells(){
+        for (let i = 0;i<this.cells.length;i++){
+            for (let j = 0;j<this.cells.length;j++){
+                this.cells[i][j].available = false
+            }
+        }
+    }
+
     private kingIsUnderAttack(color:Colors) : boolean{
         const cellWhereIsKing = this.getKingCell(color)
         for (let i = 0;i<this.cells.length;i++){
@@ -155,7 +190,7 @@ export class Board {
         return true
     }
 
-
+    // if true it is a tie
     private onlyKingsExistsOnTheBoard(){
         for (let i = 0;i<this.cells.length;i++){
             for (let j = 0 ;j<this.cells.length;j++){
@@ -197,46 +232,9 @@ export class Board {
     // get deep copied version of the board (for deep check)
     public getDeepCopyBoard<T extends Board>() : T  {
         const newBoard = new Board() as T
-        for (let i = 0;i<this.cells.length;i++){
-            const cellArray : Cell[] = []
-            for (let j = 0;j<this.cells[i].length;j++){
-                const cellRefernce = this.cells[i][j]
-                const cell = new Cell(cellRefernce.i,cellRefernce.j,cellRefernce.color,null)
-                if (!cellRefernce.figure) {
-                    cellArray.push(cell)
-                    continue;
-                }
-                if (cellRefernce.figure.name === FigureNames.PAWN){
-                    const newPawn = new Pawn(cellRefernce.figure.color)
-                    cell.figure = newPawn
-                }
-                if (cellRefernce.figure.name === FigureNames.KING){
-                    const newKing = new King(cellRefernce.figure.color)
-                    cell.figure = newKing
-                }
-                if (cellRefernce.figure.name === FigureNames.BISHOP){
-                    const newBishop = new Bishop(cellRefernce.figure.color)
-                    cell.figure = newBishop
-                }
-                if (cellRefernce.figure.name === FigureNames.QUEEN){
-                    const newQueen = new Queen(cellRefernce.figure.color)  
-                    cell.figure = newQueen
-                }
-                if (cellRefernce.figure.name === FigureNames.HORSE){
-                    const newHorse = new Horse(cellRefernce.figure.color)
-                    cell.figure = newHorse
-                }
-                if (cellRefernce.figure.name === FigureNames.ROOK){
-                    const newRook = new Rook(cellRefernce.figure.color)
-                    cell.figure = newRook
-                }
-                cellArray.push(cell)
-            }
-            newBoard.cells.push(cellArray)
-        }
+        newBoard.cells = this.cells.slice()
 
-        return newBoard 
-        
+        return newBoard
       }
 
     // get new verison of the board,with the same cells in memory
@@ -265,56 +263,56 @@ export class Board {
     private addPawns() {
         for (let j = 0;j< 8;j++){
             // black pawn
-            this.cells[1][j].figure =  new Pawn(Colors.BLACK)
+            this.cells[1][j].figure = this.reverseDeskForBlackPlayer ? new Pawn(Colors.WHITE) : new Pawn(Colors.BLACK)
             // white pawn
-            this.cells[6][j].figure = new Pawn(Colors.WHITE)
+            this.cells[6][j].figure = this.reverseDeskForBlackPlayer ? new Pawn(Colors.BLACK) : new Pawn(Colors.WHITE)
         }
     }
 
     // add kings to board
     private addKings() {
          // black king
-         this.cells[0][3].figure =  new King(Colors.BLACK)
+         this.cells[0][3].figure = this.reverseDeskForBlackPlayer ? new King(Colors.WHITE) : new King(Colors.BLACK)
          // white king
-         this.cells[7][3].figure = new King(Colors.WHITE)
+         this.cells[7][3].figure = this.reverseDeskForBlackPlayer ? new King(Colors.BLACK) : new King(Colors.WHITE)
     }
 
     // add queens to board
     private addQueens() {
          // black queen
-         this.cells[0][4].figure =  new Queen(Colors.BLACK)
+         this.cells[0][4].figure = this.reverseDeskForBlackPlayer ? new Queen(Colors.WHITE) : new Queen(Colors.BLACK)
          // white queen
-         this.cells[7][4].figure = new Queen(Colors.WHITE)
+         this.cells[7][4].figure = this.reverseDeskForBlackPlayer ? new Queen(Colors.BLACK) : new Queen(Colors.WHITE)
     }
 
     // add rooks to board
     private addRooks() {
          // black rooks
-         this.cells[0][0].figure =  new Rook(Colors.BLACK)
-         this.cells[0][7].figure =  new Rook(Colors.BLACK)
+         this.cells[0][0].figure =  this.reverseDeskForBlackPlayer ? new Rook(Colors.WHITE) : new Rook(Colors.BLACK)
+         this.cells[0][7].figure =  this.reverseDeskForBlackPlayer ? new Rook(Colors.WHITE) : new Rook(Colors.BLACK)
          // white rooks
-         this.cells[7][0].figure = new Rook(Colors.WHITE)
-         this.cells[7][7].figure = new Rook(Colors.WHITE)
+         this.cells[7][0].figure =  this.reverseDeskForBlackPlayer ? new Rook(Colors.BLACK) :new Rook(Colors.WHITE)
+         this.cells[7][7].figure =  this.reverseDeskForBlackPlayer ? new Rook(Colors.BLACK) :new Rook(Colors.WHITE)
     }
 
     // add bishops to board
     private addBishops() {
          // black horses
-         this.cells[0][2].figure =  new Bishop(Colors.BLACK)
-         this.cells[0][5].figure =  new Bishop(Colors.BLACK)
+         this.cells[0][2].figure =  this.reverseDeskForBlackPlayer ? new Bishop(Colors.WHITE) : new Bishop(Colors.BLACK)
+         this.cells[0][5].figure =  this.reverseDeskForBlackPlayer ? new Bishop(Colors.WHITE) :new Bishop(Colors.BLACK)
          // white horses
-         this.cells[7][2].figure = new Bishop(Colors.WHITE)
-         this.cells[7][5].figure = new Bishop(Colors.WHITE)
+         this.cells[7][2].figure =  this.reverseDeskForBlackPlayer ? new Bishop(Colors.BLACK) : new Bishop(Colors.WHITE)
+         this.cells[7][5].figure =  this.reverseDeskForBlackPlayer ? new Bishop(Colors.BLACK) :new Bishop(Colors.WHITE)
 
     }
 
     // add horses to board
     private addHorses() {
-        this.cells[0][1].figure =  new Horse(Colors.BLACK)
-        this.cells[0][6].figure =  new Horse(Colors.BLACK)
+        this.cells[0][1].figure =  this.reverseDeskForBlackPlayer ? new Horse(Colors.WHITE) :new Horse(Colors.BLACK)
+        this.cells[0][6].figure =  this.reverseDeskForBlackPlayer ? new Horse(Colors.WHITE) : new Horse(Colors.BLACK)
         // white horses
-        this.cells[7][1].figure = new Horse(Colors.WHITE)
-        this.cells[7][6].figure = new Horse(Colors.WHITE)
+        this.cells[7][1].figure =  this.reverseDeskForBlackPlayer ? new Horse(Colors.BLACK) :new Horse(Colors.WHITE)
+        this.cells[7][6].figure =  this.reverseDeskForBlackPlayer ? new Horse(Colors.BLACK) :new Horse(Colors.WHITE)
     }
 
     // check board's vertical
