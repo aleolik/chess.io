@@ -1,22 +1,50 @@
 .container{
-    flex-direction: row;
     display: flex;
-    justify-content: center;
     align-items: center;
-    width: 90vw;
-    height: 80vh;
+    color: white;
+    text-align: center;
+    margin-top: 0;
 }
-.firstContainer{
+
+.textContainer{
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    border: 1px solid white;
+    border-radius: 20px;
+    width: 60vh;
+}
+.closeIcon{
+    position: absolute;
+    top: 1vh;
+    right: 1vw;
+    color: aqua;
+    font-size: 30px;
+
+    &:hover{
+        background-color: darkgray;
+        border-radius: 30px;
+    }
+}
+
+.buttonContainer{
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 .bgImg{
-    width: 60vh;
-    height: 60vh;
+    border: 3px solid white;
 }
-.buttonPlay {
+
+
+
+
+.containerButton {
     background-image: linear-gradient(to right, #1FA2FF 0%, #12D8FA  51%, #1FA2FF  100%);
-    margin-top: 1.5vh;
+    position: relative;
     margin: 10px;
     padding: 15px 45px;
     text-align: center;
@@ -27,13 +55,68 @@
     box-shadow: 0 0 20px #eee;
     border-radius: 10px;
     display: block;
-    width: max(300px,30vw);
+    width: 100%;
     letter-spacing: 1px;
+    font-size: 100%;
+    border: 1px solid blue;
 
     &:hover {
         background-position: right center; /* change the direction of the change here */
         color: #fff;
         text-decoration: none;
     }
+    &:disabled {
+        opacity: 0.6; /* Reduce opacity to make it appear disabled */
+        cursor: not-allowed; /* Change the cursor to indicate it's disabled */
+    }
   }
 
+
+@media (orientation : landscape) {
+    .bgImg{
+        width: 60vh;
+        height: 60vh;;
+    }
+    .container {
+        flex-direction : row;
+        width: 90vw;
+        height: 80vh;
+        justify-content: center;
+    }
+    .buttonContainer{
+       margin-left: 0px;
+       width: 60vh;
+       margin-left: 1.5vw;
+       height: 60vh;
+    }
+    .textContainer{
+        width: 60vh;
+        height: max(150px,4vh);
+    }
+}
+
+
+
+@media (orientation : portrait) {
+    .bgImg{
+        width: 75vw;
+        height: 75vw;;
+    }
+    .container {
+        flex-direction : column;
+        height: fit-content;
+        width: 100vw;
+        min-height: 125vh;
+        justify-content: start;
+    }
+    .buttonContainer{
+       margin-left: 0px;
+       width: 75vw;
+       height: fit-content;
+       margin-top: 1.5vh;
+    }
+    .textContainer{
+        width: 75vw;
+        height: max(150px,10vh);
+    }
+}

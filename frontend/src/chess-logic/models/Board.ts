@@ -14,11 +14,10 @@ import { FigureNames } from "./Figure"
 export class Board {
     cells : Cell[][] = []
     id : string;
-    reverseDeskForBlackPlayer : boolean
+
     
-    constructor(reverseDeskForBlackPlayer:boolean=false){
+    constructor(){
         this.id = v4()
-        this.reverseDeskForBlackPlayer = false
     }
     
     // get cell,where king is located(takes color as parametr;white-White King;black-Black king)
@@ -73,60 +72,61 @@ export class Board {
         return arr
     }
 
-    // CHECK on deepCopiedBoard if king will be under the attack if you make this turn.
-    public kingWillBeUnderAttack(fromCell:Cell,targetCell:Cell,deepCopyBoard:Board) : boolean{
-        if (!deepCopyBoard) {
-            throw new Error("DeepCopyBoard can not be null in kingWillBeUnderAttack method!")
-        }
-        if (deepCopyBoard) {
-            const fromCellInNewBoard = deepCopyBoard.getCell(fromCell.i,fromCell.j)    
-            const targetCellInNewBoard = deepCopyBoard.getCell(targetCell.i,targetCell.j)
+    /* 
+        !!! call only in deepCopied instance !!!
+        CHECK on deepCopiedBoard if king will be under the attack if you make this turn.
+    */
+    public kingWillBeUnderAttack(fromCell:Cell,targetCell:Cell) : boolean{
+        const fromCellInNewBoard = this.getCell(fromCell.i,fromCell.j)    
+        const targetCellInNewBoard = this.getCell(targetCell.i,targetCell.j)
 
-            if (!fromCellInNewBoard.figure) return true
-            const figureInTargetBefore = targetCellInNewBoard.figure
-            const figureThatIsMakingMove = fromCellInNewBoard.figure
-            const cellWhereIsKing = deepCopyBoard.getKingCell(figureThatIsMakingMove.color)
-            targetCellInNewBoard.figure = figureThatIsMakingMove
-            fromCellInNewBoard.figure = null
+        if (!fromCellInNewBoard.figure) return true
+        const figureInTargetBefore = targetCellInNewBoard.figure
+        const figureThatIsMakingMove = fromCellInNewBoard.figure
+        const cellWhereIsKing = this.getKingCell(figureThatIsMakingMove.color)
+        targetCellInNewBoard.figure = figureThatIsMakingMove
+        fromCellInNewBoard.figure = null
 
 
-            for (let i = 0 ;i<deepCopyBoard.cells.length;i++){
-                for (let j = 0;j<deepCopyBoard.cells.length;j++) {
-                    const cell = deepCopyBoard.getCell(i,j)
-                    if (!cell.figure) continue
-                    if (cell.figure.color === figureThatIsMakingMove.color) continue
-                    if (cell.figure.canMove(cell,targetCellInNewBoard.figure instanceof King ? targetCellInNewBoard : cellWhereIsKing,deepCopyBoard)) {
-                        // return state as before
-                        fromCellInNewBoard.figure = figureThatIsMakingMove
-                        targetCellInNewBoard.figure = figureInTargetBefore
-                        return true
-                    }
+        for (let i = 0 ;i<this.cells.length;i++){
+            for (let j = 0;j<this.cells.length;j++) {
+                const cell = this.getCell(i,j)
+                if (!cell.figure) continue
+                if (cell.figure.color === figureThatIsMakingMove.color) continue
+                if (cell.figure.canMove(cell,targetCellInNewBoard.figure instanceof King ? targetCellInNewBoard : cellWhereIsKing,this)) {
+                    // return state as before
+                    fromCellInNewBoard.figure = figureThatIsMakingMove
+                    targetCellInNewBoard.figure = figureInTargetBefore
+                    return true
                 }
             }
-
-            // return state as before
-            fromCellInNewBoard.figure = figureThatIsMakingMove
-            targetCellInNewBoard.figure = figureInTargetBefore
-
-            return false
         }
+
+        // return state as before
+        fromCellInNewBoard.figure = figureThatIsMakingMove
+        targetCellInNewBoard.figure = figureInTargetBefore
+
+        return false
         
-        return true
    }
 
 
-    // highligt cells for user where he can move figure from selected cell.
-    public highlightCells(selectedCell : Cell) {
-        const deepCopyBoard = this.getDeepCopyBoard()
+   /*   
+       !!! call only in DeepCopied instance !!!
+       highligt cells for user where he can move figure from selected cell
+   */
+    public highlightCells(selectedCell : Cell) : Cell[][] {
         for (let i = 0;i<this.cells.length;i++){
             const row = this.cells[i]
             for (let j = 0;j<row.length;j++) {
                 const target = this.getCell(i,j)
                 if (selectedCell.figure) {
-                    this.cells[i][j].available = selectedCell.figure.canMove(selectedCell,target,this) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,target,deepCopyBoard)
+                    this.cells[i][j].available = selectedCell.figure.canMove(selectedCell,target,this) && !this.kingWillBeUnderAttack(selectedCell,target)
                 }
             }
         }
+
+        return this.cells
     }
 
     // for ui
@@ -151,13 +151,17 @@ export class Board {
         return false
     }
 
-    private figureCanMovePrivate(selectedCell : Cell,deepCopyBoard:Board) : boolean {
+
+    /*
+        !! call only in deepCopied instance
+    */
+    private colorCanMove(selectedCell : Cell,deepCopiedBoard:Board) : boolean {
         for (let i = 0;i<this.cells.length;i++){
             const row = this.cells[i]
             for (let j = 0;j<row.length;j++) {
                 const target = this.getCell(i,j)
                 if (selectedCell.figure) {
-                    if (selectedCell.figure.canMove(selectedCell,target,deepCopyBoard) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,target,deepCopyBoard)) return true
+                    if (selectedCell.figure.canMove(selectedCell,target,deepCopiedBoard) && !deepCopiedBoard.kingWillBeUnderAttack(selectedCell,target)) return true
                 }
             }
         }
@@ -165,16 +169,19 @@ export class Board {
     }
 
 
+    /*
+       !!! call only in deepCopied instance !!!
+        checks for mate
+    */
     public isMate(color:Colors) : boolean{
         if (!this.kingIsUnderAttack(color)) return false
-        const deepCopyBoard = this.getDeepCopyBoard()
         const cellWhereFiguresByColor : Cell[] = []
         for (let i = 0;i<this.cells.length;i++){
             const row = this.cells[i]
             for (let j = 0;j<row.length;j++) {
-                const targetInDeepCopyBoard = deepCopyBoard.getCell(i,j)
-                if (targetInDeepCopyBoard?.figure?.color !== color) continue
-                cellWhereFiguresByColor.push(targetInDeepCopyBoard)
+                const targetInDeepCopiedBoard = this.getCell(i,j)
+                if (targetInDeepCopiedBoard?.figure?.color !== color) continue
+                cellWhereFiguresByColor.push(targetInDeepCopiedBoard)
             }
         }
 
@@ -182,8 +189,8 @@ export class Board {
             const selectedCell = cellWhereFiguresByColor[i]
             for (let j = 0;j<this.cells.length;j++){
                 for (let k = 0;k<this.cells.length;k++) {
-                    const target = deepCopyBoard.getCell(j,k)
-                    if (selectedCell.figure?.canMove(selectedCell,target,deepCopyBoard) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,target,deepCopyBoard)) return false
+                    const target = this.getCell(j,k)
+                    if (selectedCell.figure?.canMove(selectedCell,target,this) && !this.kingWillBeUnderAttack(selectedCell,target)) return false
                 }
             }
         }
@@ -203,26 +210,29 @@ export class Board {
         return true
     }
 
-    private playerCanMove(color:Colors) : boolean{
-        const deepCopyBoard = this.getDeepCopyBoard()
+    private colorHasAnyAvailableMoves(color:Colors) : boolean{
         for (let i = 0;i<this.cells.length;i++){
             for (let j = 0 ;j<this.cells.length;j++){
                 const cell = this.getCell(i,j)
                 if (!cell.figure) continue
                 if (cell.figure.color !== color) continue
-                if (this.figureCanMovePrivate(cell,deepCopyBoard)) return true
+                if (this.colorCanMove(cell,this)) return true
             }
         }
         return false
     }
     
+    /*
+        !!! only call in deepCopied instance
+        checks for a tie
+    */
     public isTie(color:Colors) : boolean{
         // tie can be : king is under attack and no moves available or only 2 kings left on the board
         if (this.onlyKingsExistsOnTheBoard()) {
             return true
         }
 
-        if (!this.playerCanMove(color)){
+        if (!this.colorHasAnyAvailableMoves(color)){
             return true
         }
 
@@ -263,56 +273,56 @@ export class Board {
     private addPawns() {
         for (let j = 0;j< 8;j++){
             // black pawn
-            this.cells[1][j].figure = this.reverseDeskForBlackPlayer ? new Pawn(Colors.WHITE) : new Pawn(Colors.BLACK)
+            this.cells[1][j].figure = new Pawn(Colors.BLACK)
             // white pawn
-            this.cells[6][j].figure = this.reverseDeskForBlackPlayer ? new Pawn(Colors.BLACK) : new Pawn(Colors.WHITE)
+            this.cells[6][j].figure =  new Pawn(Colors.WHITE)
         }
     }
 
     // add kings to board
     private addKings() {
          // black king
-         this.cells[0][3].figure = this.reverseDeskForBlackPlayer ? new King(Colors.WHITE) : new King(Colors.BLACK)
+         this.cells[0][3].figure = new King(Colors.BLACK)
          // white king
-         this.cells[7][3].figure = this.reverseDeskForBlackPlayer ? new King(Colors.BLACK) : new King(Colors.WHITE)
+         this.cells[7][3].figure =  new King(Colors.WHITE)
     }
 
     // add queens to board
     private addQueens() {
          // black queen
-         this.cells[0][4].figure = this.reverseDeskForBlackPlayer ? new Queen(Colors.WHITE) : new Queen(Colors.BLACK)
+         this.cells[0][4].figure =  new Queen(Colors.BLACK)
          // white queen
-         this.cells[7][4].figure = this.reverseDeskForBlackPlayer ? new Queen(Colors.BLACK) : new Queen(Colors.WHITE)
+         this.cells[7][4].figure =  new Queen(Colors.WHITE)
     }
 
     // add rooks to board
     private addRooks() {
          // black rooks
-         this.cells[0][0].figure =  this.reverseDeskForBlackPlayer ? new Rook(Colors.WHITE) : new Rook(Colors.BLACK)
-         this.cells[0][7].figure =  this.reverseDeskForBlackPlayer ? new Rook(Colors.WHITE) : new Rook(Colors.BLACK)
+         this.cells[0][0].figure =  new Rook(Colors.BLACK)
+         this.cells[0][7].figure =  new Rook(Colors.BLACK)
          // white rooks
-         this.cells[7][0].figure =  this.reverseDeskForBlackPlayer ? new Rook(Colors.BLACK) :new Rook(Colors.WHITE)
-         this.cells[7][7].figure =  this.reverseDeskForBlackPlayer ? new Rook(Colors.BLACK) :new Rook(Colors.WHITE)
+         this.cells[7][0].figure =  new Rook(Colors.WHITE)
+         this.cells[7][7].figure =  new Rook(Colors.WHITE)
     }
 
     // add bishops to board
     private addBishops() {
          // black horses
-         this.cells[0][2].figure =  this.reverseDeskForBlackPlayer ? new Bishop(Colors.WHITE) : new Bishop(Colors.BLACK)
-         this.cells[0][5].figure =  this.reverseDeskForBlackPlayer ? new Bishop(Colors.WHITE) :new Bishop(Colors.BLACK)
+         this.cells[0][2].figure =  new Bishop(Colors.BLACK)
+         this.cells[0][5].figure =  new Bishop(Colors.BLACK)
          // white horses
-         this.cells[7][2].figure =  this.reverseDeskForBlackPlayer ? new Bishop(Colors.BLACK) : new Bishop(Colors.WHITE)
-         this.cells[7][5].figure =  this.reverseDeskForBlackPlayer ? new Bishop(Colors.BLACK) :new Bishop(Colors.WHITE)
+         this.cells[7][2].figure =  new Bishop(Colors.WHITE)
+         this.cells[7][5].figure =  new Bishop(Colors.WHITE)
 
     }
 
     // add horses to board
     private addHorses() {
-        this.cells[0][1].figure =  this.reverseDeskForBlackPlayer ? new Horse(Colors.WHITE) :new Horse(Colors.BLACK)
-        this.cells[0][6].figure =  this.reverseDeskForBlackPlayer ? new Horse(Colors.WHITE) : new Horse(Colors.BLACK)
+        this.cells[0][1].figure =  new Horse(Colors.BLACK)
+        this.cells[0][6].figure =  new Horse(Colors.BLACK)
         // white horses
-        this.cells[7][1].figure =  this.reverseDeskForBlackPlayer ? new Horse(Colors.BLACK) :new Horse(Colors.WHITE)
-        this.cells[7][6].figure =  this.reverseDeskForBlackPlayer ? new Horse(Colors.BLACK) :new Horse(Colors.WHITE)
+        this.cells[7][1].figure =  new Horse(Colors.WHITE)
+        this.cells[7][6].figure =  new Horse(Colors.WHITE)
     }
 
     // check board's vertical

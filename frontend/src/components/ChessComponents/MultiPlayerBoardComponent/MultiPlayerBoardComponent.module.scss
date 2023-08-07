@@ -1,6 +1,30 @@
 .board{
-    width: calc(64px * 8);
-    height: calc(64px * 8);
     display: flex;
     flex-wrap: wrap;
+    width: 80vw;
+    height: 80vh;
 }
+
+.container{
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    align-items: center;
+    width: 100%;
+}
+
+
+@media (orientation : portrait) {
+    .board{
+        width: 80vw;
+        height: 80vw;
+    }
+}
+
+@media (orientation : landscape) {
+    .board{
+        width: 64vh;
+        height: 64vh;
+    }
+}
+

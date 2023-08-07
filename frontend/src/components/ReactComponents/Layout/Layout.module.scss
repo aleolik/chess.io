@@ -4,4 +4,23 @@
     background-color: rgba(0, 0, 0, 0.85);
     min-height: 100vh;
     width: 100vw;
+    position: relative;
 }
+
+.outlet_container{
+    margin-top: min(75px,5vh);
+    width: 99vw;
+    min-height: 100vh;
+}
+
+@media (orientation : portrait) {
+    .layout {
+        min-height: 130vh;
+        flex-direction: column;
+    }
+    .outlet_container {
+        width: 100vw;
+    }
+}
+
+

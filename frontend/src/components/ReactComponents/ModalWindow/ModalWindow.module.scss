@@ -12,7 +12,6 @@ $maxWidth:560px;
 }
 
 .modal_content{
-    padding: 25px;
     background-color:whitesmoke;
     border-radius: 16px;
     min-width: min($maxWidth,100vw);
@@ -32,12 +31,6 @@ $maxWidth:560px;
 }
 
 
-@media (max-width:$maxWidth) {
-    .modal_content{
-        height: 100vh;
-        width: 100vw;
-    }
-}
 
 .closeIcon{
     position: absolute;

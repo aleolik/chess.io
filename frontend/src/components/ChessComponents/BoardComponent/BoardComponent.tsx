@@ -1,4 +1,4 @@
-import React, { FC, SetStateAction, useEffect, useState,Dispatch } from 'react'
+import React, { FC, SetStateAction, useEffect, useState,Dispatch, MutableRefObject } from 'react'
 import scss from './BoardComponent.module.scss'
 import CellComponent from '../CellComponent/CellComponent'
 import { Board } from '../../../chess-logic/models/Board'
@@ -14,47 +14,39 @@ import ModalWindow, { GameStatusWindow } from '../../ReactComponents/ModalWindow
 import { useAppDispatch } from '../../../redux/hooks/useAppDispatch'
 import { AvailableWindows, modalSlice } from '../../../redux/reducers/modalReducer'
 import { useAppSelector } from '../../../redux/hooks/useAppSelector'
+import RestartBoardButton from '../RestartBoardButton/RestartBoardButton'
 
-interface BoardProps{
-  board : Board,
-  setBoard : (board:Board) => void,
-  isWhiteTurn : boolean,
-  setIsWhiteTurn : (isWhiteTurn:boolean) => void,
-  isBlackTurn : boolean,
-  setIsBlackTurn : (isWhiteTurn:boolean) => void,
-  selectedCell : Cell | null,
-  setSelectedCell : (cell : Cell | null) => void
-  isWinner : Colors | null,
-  setIsWinner : (isWinner : Colors | null) => void
-  whiteTakenFigures : Figure[]
-  setWhiteTakenFigures : Dispatch<SetStateAction<Figure[]>>
-  blackTakenFigures : Figure[]
-  setBlackTakenFigures : Dispatch<SetStateAction<Figure[]>>
-}
-const BoardComponent : FC<BoardProps> = ({board,setBoard,isWhiteTurn,setIsWhiteTurn,isBlackTurn,setIsBlackTurn,selectedCell,setSelectedCell,isWinner,setIsWinner,blackTakenFigures,setBlackTakenFigures,whiteTakenFigures,setWhiteTakenFigures}) => {
+const BoardComponent = () => {
+  const [board,setBoard] = useState<Board>(new Board())
+  const [isWhiteTurn,setIsWhiteTurn] = useState<boolean>(false)
+  const [isBlackTurn,setIsBlackTurn] = useState<boolean>(false)
+  const [selectedCell,setSelectedCell] = useState<null | Cell>(null)
+  const [isWinner,setIsWinner] = useState<null | Colors>(null)
+  const [whiteTakenFigures,setWhiteTakenFigures] = useState<Figure[]>([])
+  const [blackTakenFigures,setBlackTakenFigures] = useState<Figure[]>([])
   const [deepCopiedBoard,setDeepCopiedBoard] = useState<Board>(new Board())
   const [makeTurnSound] = useSound(makeTurn)
   const dispatch = useAppDispatch()
   const {showModal,showWindow} = useAppSelector(state => state.modal)
   const showGameStatus = modalSlice.actions.showGameStatus
+
   useEffect(() => {
-    if (board.cells.length && board.isMate(isWhiteTurn ? Colors.WHITE : Colors.BLACK)) {
+    setDeepCopiedBoard(board)
+    if (deepCopiedBoard.cells.length && deepCopiedBoard.isMate(isWhiteTurn ? Colors.WHITE : Colors.BLACK)) {
       setIsWinner(isWhiteTurn ? Colors.BLACK : Colors.WHITE)
       dispatch(showGameStatus())
       setSelectedCell(null)
-      return;
-    }
-    if (!isWinner && board.cells.length && board.isTie(isWhiteTurn ? Colors.WHITE : Colors.BLACK)){
-      dispatch(showGameStatus())
-      setIsWinner(null)
-      return;
+    } else {
+      if (isWinner === null && deepCopiedBoard.cells.length && deepCopiedBoard.isTie(isWhiteTurn ? Colors.WHITE : Colors.BLACK)){
+        dispatch(showGameStatus())
+        setIsWinner(null)
+      }
     }
   },[isWhiteTurn,isBlackTurn])
 
   const cellOnClick = (targetCell:Cell) => {
-    if (isWinner) return;
-    const deepCopyBoard = board.getDeepCopyBoard()
-    if (selectedCell && selectedCell.figure && selectedCell.figure.canMove(selectedCell,targetCell,board) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,targetCell,deepCopyBoard)){
+    if (isWinner === null) {
+      if (selectedCell && selectedCell.figure && deepCopiedBoard.cells.length && selectedCell.figure.canMove(selectedCell,targetCell,deepCopiedBoard) && !deepCopiedBoard.kingWillBeUnderAttack(selectedCell,targetCell)){
         if (selectedCell.figure instanceof King && targetCell.figure instanceof Rook && selectedCell.figure.color === targetCell.figure.color) {
           // SWAP RULE
           selectedCell.figure.moveFigure(selectedCell,targetCell,board,true)
@@ -84,36 +76,62 @@ const BoardComponent : FC<BoardProps> = ({board,setBoard,isWhiteTurn,setIsWhiteT
       if (targetCell.figure.color === Colors.BLACK && !isBlackTurn) return;
       setSelectedCell(targetCell)
     }
+    }  
   }
 
-  const highlightCells = () => {
-    if (selectedCell) {
-      board.highlightCells(selectedCell)
+  const highlightCells = (selectedCell:Cell) => {
+    if (deepCopiedBoard.cells.length) {
+      deepCopiedBoard.highlightCells(selectedCell)
     }
   }
 
   const updateBoard = () => {
     const newBoard = board.getCopyBoard()
-    // for re-rendering
     setBoard(newBoard)
   }
 
+  const restart = (buttonRef  : MutableRefObject<HTMLButtonElement | null>) => {
+    const newBoard = new Board()
+    newBoard.initCells()
+    newBoard.addFigures()
+    setBoard(newBoard)
+    setDeepCopiedBoard(newBoard)
+    setIsWhiteTurn(true)
+    setIsBlackTurn(false)
+    setSelectedCell(null)
+    setIsWinner(null)
+    setWhiteTakenFigures([])
+    setBlackTakenFigures([])
+    // disable button for 1.5 seconds
+    if (!buttonRef.current) return;
+    buttonRef.current.disabled = true
+    setTimeout(() => {
+        if (!buttonRef.current) return;
+        buttonRef.current.disabled = false
+    },1500);
+  }
+
   useEffect(() => {
-    if (board === null || selectedCell === null) return;
-    // for re-rendering
-    updateBoard()
-    highlightCells()
+    if (deepCopiedBoard.cells.length && selectedCell) {
+      // for re-rendering
+      updateBoard()
+      // highlight available moves for user
+      highlightCells(selectedCell)
+    }
   },[selectedCell])
+
+
+
+
   
   return (
-    <div>
+    <div className={scss.container}>
         <BarToDisplayTakenFigures takenFigures={whiteTakenFigures} color={Colors.WHITE}/>
         {showModal && showWindow === AvailableWindows.GameStatus && (
           <ModalWindow children={<GameStatusWindow isWinner={isWinner}/>}/>
         )}
         <div className={scss.board}>
-          <>
-              {board.cells.map((cellRow:Cell[],index) => {
+            {board.cells.map((cellRow:Cell[],index) => {
               return (
                 <React.Fragment key={index}>
                   {cellRow.map((cell) => {
@@ -129,9 +147,9 @@ const BoardComponent : FC<BoardProps> = ({board,setBoard,isWhiteTurn,setIsWhiteT
                 </React.Fragment>
               )
             })}
-            </>
       </div>
       <BarToDisplayTakenFigures takenFigures={blackTakenFigures} color={Colors.BLACK}/>
+      <RestartBoardButton restart={restart}/>
     </div>
   )
 }

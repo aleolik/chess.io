@@ -1,52 +1,61 @@
-import React, { useEffect } from 'react'
-import {isMobile } from 'react-device-detect'
+import React, { useEffect, useRef } from 'react'
 import scss from './MainPage.module.scss'
-import BottomMenu from '../../components/ReactComponents/BottomMenu/BottomMenu'
 import backgroundImg from '../../assets/background.png'
 import { useNavigate } from 'react-router-dom'
 import { useAppSelector } from '../../redux/hooks/useAppSelector'
-import { ToastContainer,toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css';
 import { SocketMethods } from '../../interfaces/ws_interfaces'
+import Loader from '../../components/ReactComponents/Loader/Loader'
+import { AiOutlineClose } from 'react-icons/ai'
+
+
 const MainPage = () => {
+
   const navigate = useNavigate()
   const {user} = useAppSelector(state => state.user)
  
-  const ws = useAppSelector(state => state.webSocket.ws)
+  const {ws,inQueue,gameData} = useAppSelector(state => state.webSocket)
 
   const startQueue = (event : React.MouseEvent<HTMLButtonElement>) => {
     if (ws && user) {
         ws.send(JSON.stringify({
             method : SocketMethods.startQueue,
             id : user.id,
-          }))
-    } else {
-        toast.error('to play with other users,you need to be logged in!', {
-            position: "top-center",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-        });
+        }))
     }
   }
+
+  const cancelQueue = () => {
+    if (ws && user) {
+        ws.send(JSON.stringify({
+            method : SocketMethods.endQueue,
+        }))
+    
+    }
+  }
+
   return (
     <div>
         <div>
-            <ToastContainer></ToastContainer>
-            {!isMobile && (
                 <div className={scss.container}>
-                    <div className={scss.firstContainer}>
-                        <img src={backgroundImg} alt='bg' className={scss.bgImg}></img>
-                        <button onClick={() => navigate('/single-player')} className={[`btn btn-primary`,scss.buttonPlay].join(' ')}>Play on 1 device</button>
-                        <button disabled={!ws || !user} onClick={startQueue} className={[`btn btn-primary`,scss.buttonPlay].join(' ')}>Play Multiplayer</button>
+                    <img src={backgroundImg} alt='bg' className={scss.bgImg}></img>
+                    <div className={scss.buttonContainer}>
+                        {inQueue && (
+                            <div className={scss.textContainer}>
+                                <h4>Looking for an opponent...</h4>
+                                <AiOutlineClose onClick={cancelQueue} className={scss.closeIcon}/>
+                                <Loader/>
+                            </div>
+                        )}
+                        {gameData?.gameActive && (
+                            <>
+                                <h4>You are currently in game</h4>
+                                <button onClick={() => navigate(`/multi-player/${gameData.lobbyId}`)} className={scss.buttonPlay}>Back</button>
+                            </>
+                        )}
+                        <button onClick={() => navigate('/single-player')} disabled={gameData?.gameActive || inQueue} className={scss.containerButton}>Play on 1 device</button>
+                        <button disabled={!ws || !user || inQueue || gameData?.gameActive} onClick={startQueue} className={scss.containerButton}>Play Multiplayer</button>
                     </div>
                 </div>
-            )}
-            <BottomMenu/>
         </div>
     </div>
   )

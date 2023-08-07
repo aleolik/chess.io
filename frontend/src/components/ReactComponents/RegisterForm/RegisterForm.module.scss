@@ -6,111 +6,95 @@
     margin: 5px;
     justify-content: center;
     align-items: center;
-    width: 50vw;
+    min-width: 50vw;
     min-height: 25vh;
 }
 
-.formInput{
-    width: 200px;
-    height: 20px;
-    border-radius: 5px;
-    margin-top: 5px;
+.passwordGroup{
+  height: 100%;
 }
 
-.emailInput{
-    width: 160px;
-    margin-left: 50px;
-    height: 20px;
-    border-radius: 5px;
-    margin-top: 5px;
-}
-.emailSpanInput{
-    width: 10px;
-    font-size: 10px;
-    height: 20px;
-    border: 1px solid black;
-}
+// @media (orientation : portrait) {
+//   .passwordGroup{
+//     height: 50%;
+//   }
+// }
 
 
-.box{
-    width: min(200px,50%);
-    height: min(50px,8vh);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: $cyan;
-    margin-left: min(15px,5vw);
-  }
-  .formButton {
-    line-height: 50px;
-    height: 50px;
-    text-align: center;
-    width: 250px;
-    cursor: pointer;
-    color: #FFF;
+
+
+
+.formButton {
+  line-height: 50px;
+  height: 50px;
+  text-align: center;
+  width: 250px;
+  cursor: pointer;
+  color: #FFF;
+  transition: all 0.3s;
+  position: relative;
+
+
+
+  &::before{
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0;
     transition: all 0.3s;
-    position: relative;
-  
-  
-  
-    &::before{
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-      opacity: 0;
-      transition: all 0.3s;
-      border-top-width: 1px;
-      border-bottom-width: 1px;
-      border-top-style: solid;
-      border-bottom-style: solid;
-      border-top-color: rgba(255,255,255,0.5);
-      border-bottom-color: rgba(255,255,255,0.5);
-      transform: scale(0.1, 1);
-    }
-    &:hover{
-      letter-spacing: 2px;
-    }
-    &:hover::before{
-      opacity: 1; 
-      transform: scale(1, 1); 
-    }
-    &::after{
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-      transition: all 0.3s;
-      background-color: rgba(255,255,255,0.1);
-    }
-    &:hover::after{
-      opacity: 0; 
-      transform: scale(0.1, 1);
-    }
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-top-style: solid;
+    border-bottom-style: solid;
+    border-top-color: rgba(255,255,255,0.5);
+    border-bottom-color: rgba(255,255,255,0.5);
+    transform: scale(0.1, 1);
   }
+  &:hover{
+    letter-spacing: 2px;
+  }
+  &:hover::before{
+    opacity: 1; 
+    transform: scale(1, 1); 
+  }
+  &::after{
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    transition: all 0.3s;
+    background-color: rgba(255,255,255,0.1);
+  }
+  &:hover::after{
+    opacity: 0; 
+    transform: scale(0.1, 1);
+  }
+}
 .btnRegister {
-    background-image: linear-gradient(to right, #1FA2FF 0%, #12D8FA  51%, #1FA2FF  100%);
-    margin: 10px;
-    padding: 15px 45px;
-    text-align: center;
-    text-transform: uppercase;
-    transition: 0.5s;
-    background-size: 200% auto;
-    color: white;            
-    box-shadow: 0 0 20px #eee;
-    border-radius: 10px;
-    display: block;
-    width: max(300px,30vw);
+  background-image: linear-gradient(to right, #1FA2FF 0%, #12D8FA  51%, #1FA2FF  100%);
+  margin: 10px;
+  padding: 15px 45px;
+  text-align: center;
+  text-transform: uppercase;
+  transition: 0.5s;
+  background-size: 200% auto;
+  color: white;        
+  border: 1px solid black;    
+  box-shadow: 0 0 20px #eee;
+  border-radius: 10px;
+  display: block;
+  width: max(300px,30vw);
 
-    &:hover {
-        background-position: right center; /* change the direction of the change here */
-        color: #fff;
-        text-decoration: none;
-    }
+  &:hover {
+      background-position: right center; /* change the direction of the change here */
+      color: #fff;
+      text-decoration: none;
   }
+}

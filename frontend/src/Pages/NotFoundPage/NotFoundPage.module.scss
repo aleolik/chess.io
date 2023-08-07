@@ -1,0 +1,55 @@
+.container{
+    color: white;
+    display: flex;
+    flex-direction: column;
+    width: 90vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+}
+
+.text{
+    font-size: 5vw;
+    color: white;
+    font-family: cursive;
+}
+
+.btn {
+    background: linear-gradient(90deg, rgba(255,125,0,1) 0%, rgba(255,236,0,1) 50%, rgba(255,125,0,1) 100%);
+    margin: 10px;
+    text-align: center;
+    text-transform: uppercase;
+    transition: 0.5s;
+    background-size: 200% auto;
+    color: white;            
+    box-shadow: 0 0 20px #eee;
+    border-radius: 10px;
+    display: block;
+    margin-top: 1.5vh;
+    font-size: 100%;
+    letter-spacing: 0.5px;
+    font-family:'Courier New', Courier, monospace;
+    width: min(150px,30vw);
+    height: 5vh;
+    &:hover{
+         background-position: right center; /* change the direction of the change here */
+         color: #fff;
+         text-decoration: none;
+    }
+  }
+
+
+@media (orientation : portrait) {
+    .container {
+        flex-direction : column;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        margin-top: 10vh;
+        justify-content: start;
+    }
+    .btn{
+        height: 7.5vh;
+        width: 50vw;
+    }
+}

@@ -4,6 +4,7 @@ import {Draft} from "immer"
 import { Colors } from '../../chess-logic/models/Colors'
 import { Cell } from '../../chess-logic/models/Cell'
 import { Figure } from '../../chess-logic/models/Figure'
+import { act } from 'react-dom/test-utils'
 
 interface IBoardState{
     board : Board | null
@@ -23,8 +24,8 @@ export const boardSlice = createSlice({
     name : 'board',
     initialState : defaultState,
     reducers : {
-        initNewBoard(state:Draft<IBoardState>,action:PayloadAction<boolean>){
-           const newBoard = new Board(action.payload === true)
+        initNewBoard(state:Draft<IBoardState>){
+           const newBoard = new Board()
            newBoard.initCells()
            newBoard.addFigures()
            state.board = newBoard
@@ -38,14 +39,26 @@ export const boardSlice = createSlice({
         }
         },
         changeCurrentMove(state:Draft<IBoardState>,action:PayloadAction<Colors>){
-        state.currentMove = action.payload
+            state.currentMove = action.payload
         },
         addBlackTakenFigure(state:Draft<IBoardState>,action:PayloadAction<Figure>){
             state.blackTakenFigures = [...state.blackTakenFigures,action.payload]
         },
         addWhiteTakenFigure(state:Draft<IBoardState>,action:PayloadAction<Figure>){
             state.whiteTakenFigures = [...state.whiteTakenFigures,action.payload]
-        }
+        },
+        setTakenFigures(state:Draft<IBoardState>,action:PayloadAction<{takenFigures : Array<Figure>,color:Colors}>){
+            if (action.payload.color === Colors.BLACK) {
+                state.blackTakenFigures = action.payload.takenFigures
+            } else {
+                state.whiteTakenFigures = action.payload.takenFigures
+            }
+        },
+        highlightCells(state:Draft<IBoardState>,action:PayloadAction<Cell>){
+            if (state.board) {
+                state.board.cells = state.board.highlightCells(action.payload)
+            }
+        },
         
     }
 })

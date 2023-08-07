@@ -15,6 +15,10 @@ import { userSlice } from './redux/reducers/userReducer';
 import { useAppDispatch } from './redux/hooks/useAppDispatch';
 import userInstance from './axios/userInstance';
 import { useWebSocket } from './hooks/useWebSocket';
+import NotFoundPage from './Pages/NotFoundPage/NotFoundPage';
+import AuthPage from './Pages/AuthPage/AuthPage';
+import NewsPage from './Pages/NewsPage/NewsPage';
+
 function App() {
   const {showModal,showWindow} = useAppSelector(state => state.modal)
   const userLoad = userSlice.actions.userLoad
@@ -25,7 +29,7 @@ function App() {
         const user = jwtDecode(token) as IUser
         dispatch(userLoad(user))
       }).catch((err) => {
-
+        console.error("Failed to login user!")
       })
   },[])
   useWebSocket()
@@ -44,7 +48,13 @@ function App() {
           <Route path='/' element={<Layout/>}>
             <Route element={<MainPage/>} path='/'></Route>
             <Route element={<SinglePlayerBoardPage/>} path='/single-player'></Route>
-            <Route element={<MultiPlayerBoard/>} path='/multi-player/:id'></Route>
+            <Route element={
+              // <AuthPage>
+                 <MultiPlayerBoard/>
+              // </AuthPage>
+            } path='/multi-player/:id'></Route>
+            <Route path='/news' element={<NewsPage/>}></Route>
+            <Route path="*" element={<NotFoundPage/>} />
           </Route>
         </Routes>
     </>

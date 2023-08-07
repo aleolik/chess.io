@@ -20,6 +20,7 @@
     border-radius: 10px;
     display: block;
     width: max(300px,30vw);
+    border: 1px solid black;
 
     &:hover {
         background-position: right center; /* change the direction of the change here */

@@ -1,0 +1,27 @@
+.container{
+    color: white;
+    display: flex;
+    flex-direction: column;
+    width: 90vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+}
+
+.text{
+    font-size: 5vw;
+    color: white;
+    font-family: cursive;
+}
+
+
+@media (orientation : portrait) {
+    .container {
+        flex-direction : column;
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        margin-top: 10vh;
+        justify-content: start;
+    }
+}

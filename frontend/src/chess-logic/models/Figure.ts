@@ -26,11 +26,9 @@ export class Figure{
         this.id = v4()
     }
     
-    canMove(fromCell:Cell,targetCell:Cell,board:Board) : boolean{
+    canMove(fromCell:Cell,targetCell:Cell,deepCopiedBoard:Board) : boolean{
         // RULE : Can not attack your's figures
         if (targetCell.figure && targetCell.figure.color === fromCell?.figure?.color) return false
-    
-
 
         return true;
     }

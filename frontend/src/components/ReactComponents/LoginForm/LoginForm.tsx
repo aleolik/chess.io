@@ -59,9 +59,6 @@ const LoginForm = () => {
          )}
         <div className="input-group mb-3">
           <input onChange={emailHandler} type="text" className="form-control" placeholder="Email Adress" aria-label="Recipient's username" aria-describedby="basic-addon2"/>
-          <div className="input-group-append">
-            <span className="input-group-text" id="basic-addon2">@gmail.com</span>
-          </div> 
         </div>
         {passwordError && (
           <CustomAlert type={AlertTypes.Error} message={passwordError}/>

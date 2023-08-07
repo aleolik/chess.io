@@ -1,17 +1,27 @@
 @import '../../../App.scss';
 .bar{
     display: flex;
-    width: 30vw;
-    height: 96px;
-    border: 2px solid aqua;
+    min-height: 2vh;
+    height: fit-content;
     flex-direction: row;
+    justify-content: start;
     flex-wrap: wrap;
-    background-color: $primary;
     margin-top: 10px;
     margin-bottom: 10px;
-    border-radius: 20px;
+    background: linear-gradient(90deg, rgba(255,125,0,1) 0%, rgba(255,236,0,1) 50%, rgba(255,125,0,1) 100%);
+}
+
+@media (orientation : landscape) {
+    .bar{
+        width: 64vh;
+    }
+}
+@media (orientation : portrait) {
+    .bar{
+        width: 100%;
+    }
 }
 .figureInBar{
-    width: 48px;
-    height: 48px;
+    height: 5vh;
+    width: 5vh;
 }

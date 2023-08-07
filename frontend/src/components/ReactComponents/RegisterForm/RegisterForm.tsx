@@ -13,6 +13,7 @@ import { closeModalWindowAsync } from '../../../redux/AsyncActions/CloseModalWin
 import FormNavigationButtons from '../FormNavigationButtons/FormNavigationButtons'
 import { userSlice } from '../../../redux/reducers/userReducer'
 import Loader from '../Loader/Loader'
+import { Axios, AxiosError } from 'axios'
 
 const RegisterForm = () => {
 
@@ -32,6 +33,7 @@ const RegisterForm = () => {
   const buttonPasswordRef = useRef<HTMLButtonElement | null>(null)
   const [canGenerateRandomPassword,setCanGenerateRandomPassword] = useState<boolean>(true)
   const [showPassword,setShowPassword] = useState<boolean>(false)
+  const [isAsyncLoading,setAsyncLoading] = useState<boolean>(false)
   const passwordRepeatedInputRef = useRef<HTMLInputElement | null>(null)
 
 
@@ -107,27 +109,36 @@ const RegisterForm = () => {
 
 
   const generateRandomPassword = async() => {
-    const generatedPassword = await getRandomCorrectPassword()
-    if (passwordInputRef.current && passwordRepeatedInputRef.current && generatedPassword){
-      // set value in inputs
-      passwordInputRef.current.value = generatedPassword
-      passwordRepeatedInputRef.current.value = generatedPassword
-      // set state
-      setPassword(generatedPassword)
-      setCanGenerateRandomPassword(false)
-      if (passwordError) {
-        setPasswordError("")
+    try {
+      setAsyncLoading(true)
+      const generatedPassword = await getRandomCorrectPassword()
+      if (generatedPassword instanceof AxiosError) {
+        dispatch(errorLoad(`status : ${generatedPassword.status?.toString() ? generatedPassword.status.toString() : "500"},errMessage : ${generatedPassword.message}`))
+      } 
+      if (passwordInputRef.current && passwordRepeatedInputRef.current && typeof generatedPassword === 'string' && generatedPassword.length) {
+        // set value in inputs
+        passwordInputRef.current.value = generatedPassword
+        passwordRepeatedInputRef.current.value = generatedPassword
+        // set state
+        setPassword(generatedPassword)
+        setCanGenerateRandomPassword(false)
+        if (passwordError) {
+          setPasswordError("")
+        }
+        setTimeout(() => {
+            setCanGenerateRandomPassword(true)
+        },10000);
+        if (!showPassword){
+          showPasswordAction()
+        }
       }
+    } catch (e) {
+      const err = e as AxiosError
+      dispatch(errorLoad(`status : ${err.status?.toString() ? err.status.toString() : "500"},errMessage : ${err.message}`))
+    } finally {
       setTimeout(() => {
-          setCanGenerateRandomPassword(true)
-      },10000);
-      if (!showPassword){
-        showPasswordAction()
-      }
-    } else {
-      if (!generatedPassword){
-        dispatch(errorLoad("Status code : 500,Server error"))
-      }
+        setAsyncLoading(false) 
+      },450);
     }
   }
 
@@ -164,6 +175,9 @@ const RegisterForm = () => {
   return (
     <>
       <FormNavigationButtons/>
+      {isAsyncLoading && (
+        <Loader/>
+      )}
       <form onSubmit={CreateNewUser} className={scss.form}>
         {userOnLoad && (
           <Loader/>
@@ -184,22 +198,18 @@ const RegisterForm = () => {
           <CustomAlert type={AlertTypes.Error} message={emailError}/>
         )}
         <div className="input-group mb-3">
-          <input onChange={emailOnChange} type="text" className="form-control" placeholder="Email Adress" aria-label="Recipient's username" aria-describedby="basic-addon2"/>
-          <div className="input-group-append">
-            <span className="input-group-text" id="basic-addon2">@gmail.com</span>
-          </div> 
-      
+          <input onChange={emailOnChange} type="text" className="form-control" placeholder="Email Adress" aria-label="Default" aria-describedby="basic-addon2"/>
         </div>
         {passwordError && (
           <CustomAlert type={AlertTypes.Error} message={passwordError}/>
         )}
-        <div className="input-group mb-3">
+        <div className={[scss.passwordGroup,"input-group mb-3"].join(' ')}>
         <input placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;"  ref={passwordInputRef}  onChange={passwordOnChange} type="password" className="form-control" aria-label="" aria-describedby="basic-addon1"/>
-          <div className='input-group-prepend'>
-             <button disabled={canGenerateRandomPassword ? false : true} ref={buttonPasswordRef} onClick={generateRandomPassword} className="btn btn-outline-primary" type="button">Generate Random Password</button>
-          </div>
           <div className="input-group-append">
-            <span className="input-group-text" id="basic-addon2" onClick={showPasswordAction}>{showPassword ? <AiFillEye/> : <AiFillEyeInvisible/>}</span>
+              <span className="input-group-text" id="basic-addon2" onClick={showPasswordAction}>{showPassword ? <AiFillEye/> : <AiFillEyeInvisible/>}</span>
+            </div>
+          <div className={'input-group-prepend mt-md-0'}>
+             <button disabled={canGenerateRandomPassword ? false : true} ref={buttonPasswordRef} onClick={generateRandomPassword} className="btn btn-outline-primary w-100" type="button">Generate Random Password</button>
           </div>
         </div>
         <div className="input-group mb-3">

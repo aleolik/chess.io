@@ -1,0 +1,36 @@
+.restartButton {
+     background: linear-gradient(90deg, rgba(255,125,0,1) 0%, rgba(255,236,0,1) 50%, rgba(255,125,0,1) 100%);
+     text-align: center;
+     text-transform: uppercase;
+     transition: 0.5s;
+     background-size: 200% auto;
+     color: white;
+     font-size: 100%;          
+     box-shadow: 0 0 20px #eee;
+     border-radius: 10px;
+     display: block;
+     margin-top: 0.5vh;
+     letter-spacing: 0.5px;
+     font-family:'Courier New', Courier, monospace;
+     width: 80%;
+     height: 5vh;
+     &:hover{
+          background-position: right center; /* change the direction of the change here */
+          color: #fff;
+          text-decoration: none;
+     }
+     border: 1px solid orange;
+ }
+
+ @media (orientation : portrait) {
+     .restartButton{
+         width: 80vw;
+     }
+ }
+ 
+ @media (orientation : landscape) {
+     .restartButton{
+         width: 64vh;
+     }
+ }
+ 

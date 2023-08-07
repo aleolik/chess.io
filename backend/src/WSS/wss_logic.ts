@@ -1,72 +1,142 @@
 import { WebSocketServer } from "ws"
 import { IUser } from "../interfaces"
-import { Colors, IMsg, customWebSocket } from "./wss_interfaces"
+import { Colors, IMsg, ICustomWebSocket, ICustomWebSocketServer, IGameData } from "./wss_interfaces"
 import { SocketMethods } from "./wss_interfaces"
+import { Board } from "../chess-logic/models/Board"
 
-export const connectionHandler = (ws : customWebSocket,msg:IMsg) => {
+export const connectionHandler = (ws : ICustomWebSocket,msg:IMsg,aWSS:ICustomWebSocketServer) => {
     const user = msg.user as IUser
     ws.user = user
     ws.id = user.id.toString()
-    ws.send(JSON.stringify({
-        method : SocketMethods.connection
-    }))
+    if (aWSS.activeGames[ws.id]) {
+        const clientGameData = aWSS.activeGames[ws.id] as IGameData
+        changeWebSocketData(ws,aWSS,clientGameData)
+        ws.send(JSON.stringify({
+            method : SocketMethods.connection,
+            gameData : clientGameData
+        }))
+    } else {
+        ws.send(JSON.stringify({
+            method : SocketMethods.connection
+        }))
+    }   
 }
-export const setClientQueueStatusToActive = (ws : customWebSocket) => {
-    ws.inQueue = true
-    ws.send(JSON.stringify({
-        method : SocketMethods.startQueue
-    }))
+export const setClientQueueStatusToActive = (ws : ICustomWebSocket) => {
+    if (!ws.gameData) {
+        ws.inQueue = true
+        ws.send(JSON.stringify({
+            method : SocketMethods.startQueue
+        }))
+    }
 }
-export const setClientQueueStatusToUnactive = (ws : customWebSocket) => {
+export const setClientQueueStatusToUnactive = (ws : ICustomWebSocket) => {
     ws.inQueue = false
     ws.send(JSON.stringify({
         method : SocketMethods.endQueue
     }))
 }
 
-export const findSessionForClient = (aWSS : WebSocketServer,ws:customWebSocket) => {
-    aWSS.clients.forEach((client : customWebSocket) => {
+export const findSessionForClient = (aWSS : ICustomWebSocketServer,ws:ICustomWebSocket) => {
+    aWSS.clients.forEach((client : ICustomWebSocket) => {
         if (client.inQueue){
             if (ws.id !== client.id) {
                 // get random colors
                 const randomNumber = Math.round(Math.random()) // 0 or 1
-                if (randomNumber === 0) {
-                    ws.color = Colors.WHITE
-                    client.color = Colors.BLACK
-                } else {
-                    ws.color = Colors.BLACK
-                    client.color = Colors.WHITE
-                }
+                const wsColor = randomNumber === 0 ? Colors.WHITE : Colors.BLACK
+                const clientColor = randomNumber === 0 ? Colors.BLACK : Colors.WHITE
                 const lobbyId = Date.now().toString(16)
+
+                const newBoard = new Board()
+                newBoard.initCells()
+                newBoard.addFigures()
+                
                 client.inQueue = false
-                client.currentMove = Colors.WHITE
-                client.lobbyId = lobbyId
+                client.gameData = {
+                    currentMove : Colors.WHITE,
+                    lobbyId : lobbyId,
+                    gameActive : true,
+                    enemyUser : {
+                        user : ws.user,
+                        color : wsColor,
+                    },
+                    boardCells : newBoard.cells,
+                    userColor : clientColor,
+                    takenFigures : [],
+                    clientTimer:{
+                        time : 30,
+                        intervalId : null,
+                    },
+                    enemyClientTimer:{
+                        time : 30,
+                        intervalId : null,
+                    },
+                    winner : null
+                }
                 ws.inQueue = false
-                ws.currentMove = Colors.WHITE
-                ws.lobbyId = lobbyId
+                ws.gameData = {
+                    currentMove : Colors.WHITE,
+                    lobbyId : lobbyId,
+                    gameActive : true,
+                    enemyUser : {
+                        user : client.user,
+                        color : clientColor,
+                    },
+                    boardCells : newBoard.cells,
+                    userColor : wsColor,
+                    takenFigures : [],
+                    clientTimer:{
+                        time : 30,
+                        intervalId : null,
+                    },
+                    enemyClientTimer:{
+                        time : 30,
+                        intervalId : null,
+                    },
+                    winner : null
+                }
+
+                // ADD ACTIVE GAME
+                aWSS.activeGames[ws.id] = ws.gameData
+                aWSS.activeGames[client.id] = client.gameData
+
                 const clientData = JSON.stringify({
                     "method" : SocketMethods.getLobby,
-                    "color":client.color,
-                    "enemyUser":{
-                        color : ws.color,
-                        user : ws.user,
-                    },
-                    "lobbyId" : lobbyId,
+                    "gameData" : client.gameData
                 })
                 const wsData = JSON.stringify({
                     "method" : SocketMethods.getLobby,
-                    "color":ws.color,
-                    "enemyUser":{
-                        user : client.user,
-                        color : client.color
-                    },
-                    "lobbyId" : lobbyId,
+                    "gameData" : ws.gameData
                 })
                 client.send(clientData)
                 ws.send(wsData)
             }
         }
     })
+}
+
+export const closeWebSocketAction = (ws : ICustomWebSocket,aWSS : WebSocketServer) => {
+    // delete active client from message
+    const clients : Set<ICustomWebSocket> = new Set()
+    aWSS.clients.forEach((client : ICustomWebSocket) => {
+        if (client.id !== ws.id) {
+            clients.add(client)
+        }
+    })  
+    aWSS.clients = clients
+
+}
+
+export const changeWebSocketData = (ws : ICustomWebSocket,aWSS : WebSocketServer,clientGameData:IGameData) => {
+    // delete active client from message
+    const clients : Set<ICustomWebSocket> = new Set()
+    aWSS.clients.forEach((client : ICustomWebSocket) => {
+        if (client.id === ws.id) {
+            client.gameData = clientGameData
+        }
+        clients.add(client)
+    })  
+    aWSS.clients = clients
+
 }
 
 

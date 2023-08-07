@@ -8,6 +8,9 @@ import { Pawn } from "../figures/Pawn"
 import { Queen } from "../figures/Queen"
 import { Rook } from "../figures/Rook"
 import { FigureNames } from "./Figure"
+
+
+
 export class Board {
     cells : Cell[][] = []
     id : string;
@@ -44,58 +47,90 @@ export class Board {
         }
     }
 
-    // CHECK on deepCopiedBoard if king will be under the attack if you make this turn.
-    public kingWillBeUnderAttack(fromCell:Cell,targetCell:Cell,deepCopyBoard:Board) : boolean{
-        if (!deepCopyBoard) {
-            throw new Error("DeepCopyBoard can not be null in kingWillBeUnderAttack method!")
+    public getCellsPropertiesWithoutImg() : any{
+        const arr = []
+        for (let i = 0;i<this.cells.length;i++){
+            const newArr = []
+            for (let j = 0;j<this.cells.length;j++){
+                const currentCell = this.getCell(i,j)
+                newArr.push({
+                    i : currentCell.i,
+                    j : currentCell.j,
+                    figure : currentCell.figure ? {
+                        name : currentCell.figure.name,
+                        color : currentCell.figure.color,
+                        id : currentCell.figure.id
+                    } : null,
+                    color : currentCell.color,
+                    id : currentCell.id,
+                    available : currentCell.available
+                })
+            }
+            arr.push(newArr)
         }
-        if (deepCopyBoard) {
-            const fromCellInNewBoard = deepCopyBoard.getCell(fromCell.i,fromCell.j)    
-            const targetCellInNewBoard = deepCopyBoard.getCell(targetCell.i,targetCell.j)
+        return arr
+    }
 
-            if (!fromCellInNewBoard.figure) return true
-            const figureInTargetBefore = targetCellInNewBoard.figure
-            const figureThatIsMakingMove = fromCellInNewBoard.figure
-            const cellWhereIsKing = deepCopyBoard.getKingCell(figureThatIsMakingMove.color)
-            targetCellInNewBoard.figure = figureThatIsMakingMove
-            fromCellInNewBoard.figure = null
+    /* 
+        !!! call only in deepCopied instance !!!
+        CHECK on deepCopiedBoard if king will be under the attack if you make this turn.
+    */
+    public kingWillBeUnderAttack(fromCell:Cell,targetCell:Cell) : boolean{
+        const fromCellInNewBoard = this.getCell(fromCell.i,fromCell.j)    
+        const targetCellInNewBoard = this.getCell(targetCell.i,targetCell.j)
+
+        if (!fromCellInNewBoard.figure) return true
+        const figureInTargetBefore = targetCellInNewBoard.figure
+        const figureThatIsMakingMove = fromCellInNewBoard.figure
+        const cellWhereIsKing = this.getKingCell(figureThatIsMakingMove.color)
+        targetCellInNewBoard.figure = figureThatIsMakingMove
+        fromCellInNewBoard.figure = null
 
 
-            for (let i = 0 ;i<deepCopyBoard.cells.length;i++){
-                for (let j = 0;j<deepCopyBoard.cells.length;j++) {
-                    const cell = deepCopyBoard.getCell(i,j)
-                    if (!cell.figure) continue
-                    if (cell.figure.color === figureThatIsMakingMove.color) continue
-                    if (cell.figure.canMove(cell,targetCellInNewBoard.figure instanceof King ? targetCellInNewBoard : cellWhereIsKing,deepCopyBoard)) {
-                        // return state as before
-                        fromCellInNewBoard.figure = figureThatIsMakingMove
-                        targetCellInNewBoard.figure = figureInTargetBefore
-                        return true
-                    }
+        for (let i = 0 ;i<this.cells.length;i++){
+            for (let j = 0;j<this.cells.length;j++) {
+                const cell = this.getCell(i,j)
+                if (!cell.figure) continue
+                if (cell.figure.color === figureThatIsMakingMove.color) continue
+                if (cell.figure.canMove(cell,targetCellInNewBoard.figure instanceof King ? targetCellInNewBoard : cellWhereIsKing,this)) {
+                    // return state as before
+                    fromCellInNewBoard.figure = figureThatIsMakingMove
+                    targetCellInNewBoard.figure = figureInTargetBefore
+                    return true
                 }
             }
-
-            // return state as before
-            fromCellInNewBoard.figure = figureThatIsMakingMove
-            targetCellInNewBoard.figure = figureInTargetBefore
-
-            return false
         }
+
+        // return state as before
+        fromCellInNewBoard.figure = figureThatIsMakingMove
+        targetCellInNewBoard.figure = figureInTargetBefore
+
+        return false
         
-        return true
    }
 
 
-    // highligt cells for user where he can move figure from selected cell.
+   /*   
+       !!! call only in DeepCopied instance !!!
+       highligt cells for user where he can move figure from selected cell
+   */
     public highlightCells(selectedCell : Cell) {
-        const deepCopyBoard = this.getDeepCopyBoard()
         for (let i = 0;i<this.cells.length;i++){
             const row = this.cells[i]
             for (let j = 0;j<row.length;j++) {
                 const target = this.getCell(i,j)
                 if (selectedCell.figure) {
-                    this.cells[i][j].available = selectedCell.figure.canMove(selectedCell,target,this) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,target,deepCopyBoard)
+                    this.cells[i][j].available = selectedCell.figure.canMove(selectedCell,target,this) && !this.kingWillBeUnderAttack(selectedCell,target)
                 }
+            }
+        }
+    }
+
+    // for ui
+    public clearAvailablePropertyInCells(){
+        for (let i = 0;i<this.cells.length;i++){
+            for (let j = 0;j<this.cells.length;j++){
+                this.cells[i][j].available = false
             }
         }
     }
@@ -113,13 +148,17 @@ export class Board {
         return false
     }
 
-    private figureCanMovePrivate(selectedCell : Cell,deepCopyBoard:Board) : boolean {
+
+    /*
+        !! call only in deepCopied instance
+    */
+    private colorCanMove(selectedCell : Cell,deepCopiedBoard:Board) : boolean {
         for (let i = 0;i<this.cells.length;i++){
             const row = this.cells[i]
             for (let j = 0;j<row.length;j++) {
                 const target = this.getCell(i,j)
                 if (selectedCell.figure) {
-                    if (selectedCell.figure.canMove(selectedCell,target,deepCopyBoard) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,target,deepCopyBoard)) return true
+                    if (selectedCell.figure.canMove(selectedCell,target,deepCopiedBoard) && !deepCopiedBoard.kingWillBeUnderAttack(selectedCell,target)) return true
                 }
             }
         }
@@ -127,16 +166,19 @@ export class Board {
     }
 
 
+    /*
+       !!! call only in deepCopied instance !!!
+        checks for mate
+    */
     public isMate(color:Colors) : boolean{
         if (!this.kingIsUnderAttack(color)) return false
-        const deepCopyBoard = this.getDeepCopyBoard()
         const cellWhereFiguresByColor : Cell[] = []
         for (let i = 0;i<this.cells.length;i++){
             const row = this.cells[i]
             for (let j = 0;j<row.length;j++) {
-                const targetInDeepCopyBoard = deepCopyBoard.getCell(i,j)
-                if (targetInDeepCopyBoard?.figure?.color !== color) continue
-                cellWhereFiguresByColor.push(targetInDeepCopyBoard)
+                const targetInDeepCopiedBoard = this.getCell(i,j)
+                if (targetInDeepCopiedBoard?.figure?.color !== color) continue
+                cellWhereFiguresByColor.push(targetInDeepCopiedBoard)
             }
         }
 
@@ -144,15 +186,15 @@ export class Board {
             const selectedCell = cellWhereFiguresByColor[i]
             for (let j = 0;j<this.cells.length;j++){
                 for (let k = 0;k<this.cells.length;k++) {
-                    const target = deepCopyBoard.getCell(j,k)
-                    if (selectedCell.figure?.canMove(selectedCell,target,deepCopyBoard) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,target,deepCopyBoard)) return false
+                    const target = this.getCell(j,k)
+                    if (selectedCell.figure?.canMove(selectedCell,target,this) && !this.kingWillBeUnderAttack(selectedCell,target)) return false
                 }
             }
         }
         return true
     }
 
-
+    // if true it is a tie
     private onlyKingsExistsOnTheBoard(){
         for (let i = 0;i<this.cells.length;i++){
             for (let j = 0 ;j<this.cells.length;j++){
@@ -165,26 +207,29 @@ export class Board {
         return true
     }
 
-    private playerCanMove(color:Colors) : boolean{
-        const deepCopyBoard = this.getDeepCopyBoard()
+    private colorHasAnyAvailableMoves(color:Colors) : boolean{
         for (let i = 0;i<this.cells.length;i++){
             for (let j = 0 ;j<this.cells.length;j++){
                 const cell = this.getCell(i,j)
                 if (!cell.figure) continue
                 if (cell.figure.color !== color) continue
-                if (this.figureCanMovePrivate(cell,deepCopyBoard)) return true
+                if (this.colorCanMove(cell,this)) return true
             }
         }
         return false
     }
     
+    /*
+        !!! only call in deepCopied instance
+        checks for a tie
+    */
     public isTie(color:Colors) : boolean{
         // tie can be : king is under attack and no moves available or only 2 kings left on the board
         if (this.onlyKingsExistsOnTheBoard()) {
             return true
         }
 
-        if (!this.playerCanMove(color)){
+        if (!this.colorHasAnyAvailableMoves(color)){
             return true
         }
 
@@ -194,46 +239,9 @@ export class Board {
     // get deep copied version of the board (for deep check)
     public getDeepCopyBoard<T extends Board>() : T  {
         const newBoard = new Board() as T
-        for (let i = 0;i<this.cells.length;i++){
-            const cellArray : Cell[] = []
-            for (let j = 0;j<this.cells[i].length;j++){
-                const cellRefernce = this.cells[i][j]
-                const cell = new Cell(cellRefernce.i,cellRefernce.j,cellRefernce.color,null)
-                if (!cellRefernce.figure) {
-                    cellArray.push(cell)
-                    continue;
-                }
-                if (cellRefernce.figure.name === FigureNames.PAWN){
-                    const newPawn = new Pawn(cellRefernce.figure.color)
-                    cell.figure = newPawn
-                }
-                if (cellRefernce.figure.name === FigureNames.KING){
-                    const newKing = new King(cellRefernce.figure.color)
-                    cell.figure = newKing
-                }
-                if (cellRefernce.figure.name === FigureNames.BISHOP){
-                    const newBishop = new Bishop(cellRefernce.figure.color)
-                    cell.figure = newBishop
-                }
-                if (cellRefernce.figure.name === FigureNames.QUEEN){
-                    const newQueen = new Queen(cellRefernce.figure.color)  
-                    cell.figure = newQueen
-                }
-                if (cellRefernce.figure.name === FigureNames.HORSE){
-                    const newHorse = new Horse(cellRefernce.figure.color)
-                    cell.figure = newHorse
-                }
-                if (cellRefernce.figure.name === FigureNames.ROOK){
-                    const newRook = new Rook(cellRefernce.figure.color)
-                    cell.figure = newRook
-                }
-                cellArray.push(cell)
-            }
-            newBoard.cells.push(cellArray)
-        }
+        newBoard.cells = this.cells.slice()
 
-        return newBoard 
-        
+        return newBoard
       }
 
     // get new verison of the board,with the same cells in memory
@@ -259,59 +267,58 @@ export class Board {
 
 
    // add pawns to board
-    private addPawns() {
-        for (let j = 0;j< 8;j++){
-            // black pawn
-            this.cells[1][j].figure =  new Pawn(Colors.BLACK)
-            // white pawn
-            this.cells[6][j].figure = new Pawn(Colors.WHITE)
-        }
+   private addPawns() {
+    for (let j = 0;j< 8;j++){
+        // black pawn
+        this.cells[1][j].figure = new Pawn(Colors.BLACK)
+        // white pawn
+        this.cells[6][j].figure =  new Pawn(Colors.WHITE)
     }
+}
 
     // add kings to board
     private addKings() {
-         // black king
-         this.cells[0][3].figure =  new King(Colors.BLACK)
-         // white king
-         this.cells[7][3].figure = new King(Colors.WHITE)
+        // black king
+        this.cells[0][3].figure = new King(Colors.BLACK)
+        // white king
+        this.cells[7][3].figure =  new King(Colors.WHITE)
     }
 
     // add queens to board
     private addQueens() {
-         // black queen
-         this.cells[0][4].figure =  new Queen(Colors.BLACK)
-         // white queen
-         this.cells[7][4].figure = new Queen(Colors.WHITE)
+        // black queen
+        this.cells[0][4].figure =  new Queen(Colors.BLACK)
+        // white queen
+        this.cells[7][4].figure =  new Queen(Colors.WHITE)
     }
 
     // add rooks to board
     private addRooks() {
-         // black rooks
-         this.cells[0][0].figure =  new Rook(Colors.BLACK)
-         this.cells[0][7].figure =  new Rook(Colors.BLACK)
-         // white rooks
-         this.cells[7][0].figure = new Rook(Colors.WHITE)
-         this.cells[7][7].figure = new Rook(Colors.WHITE)
+        // black rooks
+        this.cells[0][0].figure =  new Rook(Colors.BLACK)
+        this.cells[0][7].figure =  new Rook(Colors.BLACK)
+        // white rooks
+        this.cells[7][0].figure =  new Rook(Colors.WHITE)
+        this.cells[7][7].figure =  new Rook(Colors.WHITE)
     }
 
     // add bishops to board
     private addBishops() {
-         // black horses
-         this.cells[0][2].figure =  new Bishop(Colors.BLACK)
-         this.cells[0][5].figure =  new Bishop(Colors.BLACK)
-         // white horses
-         this.cells[7][2].figure = new Bishop(Colors.WHITE)
-         this.cells[7][5].figure = new Bishop(Colors.WHITE)
+        // black horses
+        this.cells[0][2].figure =  new Bishop(Colors.BLACK)
+        this.cells[0][5].figure =  new Bishop(Colors.BLACK)
+        // white horses
+        this.cells[7][2].figure =  new Bishop(Colors.WHITE)
+        this.cells[7][5].figure =  new Bishop(Colors.WHITE)
 
     }
-
     // add horses to board
     private addHorses() {
         this.cells[0][1].figure =  new Horse(Colors.BLACK)
         this.cells[0][6].figure =  new Horse(Colors.BLACK)
         // white horses
-        this.cells[7][1].figure = new Horse(Colors.WHITE)
-        this.cells[7][6].figure = new Horse(Colors.WHITE)
+        this.cells[7][1].figure =  new Horse(Colors.WHITE)
+        this.cells[7][6].figure =  new Horse(Colors.WHITE)
     }
 
     // check board's vertical

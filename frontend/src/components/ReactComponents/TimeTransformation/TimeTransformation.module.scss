@@ -1,7 +1,7 @@
 .timeContainer{
-    width: 30vw;
-    color: white;
-    border: 1px solid aqua;
+    width: max(150px,25vw);
+    color: black;
+    background: linear-gradient(90deg, rgba(255,125,0,1) 0%, rgba(255,236,0,1) 50%, rgba(255,125,0,1) 100%);
     text-align: center;
     margin-top: 1vh;
     margin-bottom: 1vh;

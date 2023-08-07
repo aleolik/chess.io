@@ -2,14 +2,25 @@
 
 
 .sidebar{
-    min-height: 100vh;
+    height: 100vh;
     background-color: $black;
-    width: 10vw;
+    min-width: 10vw;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: sticky;
     top: 0;
+}
+
+@media (orientation : portrait) {
+    .sidebar {
+        min-width : 100vw;
+        position:static;
+        height: fit-content;
+    }
+    .sidebarLink{
+        display: none;
+    }
 }
 .container{
     display: flex;
@@ -19,20 +30,19 @@
 }
 
 .sidebarButton {
-    background-image: linear-gradient(to right, #DA22FF 0%, #9733EE  51%, #DA22FF  100%);
+    background: linear-gradient(90deg, rgba(255,125,0,1) 0%, rgba(255,236,0,1) 50%, rgba(255,125,0,1) 100%);
     margin: 10px;
-    padding: 15px 45px;
     text-align: center;
     text-transform: uppercase;
     transition: 0.5s;
     background-size: 200% auto;
-    color: white;            
+    color: white;
+    font-size: 100%;          
     box-shadow: 0 0 20px #eee;
     border-radius: 10px;
     display: block;
     margin-top: 1.5vh;
-    font-size: 10px;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     font-family:'Courier New', Courier, monospace;
     width: min(150px,30vw);
     height: 5vh;
@@ -41,8 +51,10 @@
          color: #fff;
          text-decoration: none;
     }
-  }
- 
+    border: 1px solid orange;
+}
+
+
  
 .sidebarLogo{
     width: 150px;
@@ -57,14 +69,14 @@
     margin-top: 1.5vh;
     text-decoration: none;
     &:hover{
-        font-size: 200%;
+        font-size: 125%;
         color: #00eefffa;
         text-decoration: none;
     }
 }
 .activeLink{
-    color: #00eefffa;
-    font-size: 180%;
+    color: aqua;
+    font-size: 150%;
 }
 .sidebar-button{
     width: 150px;
@@ -73,42 +85,9 @@
     margin-top: 10%;
 }
 
-.playButton{
-    width: 60vw;
-    background-color: $dark_secondary;
-    border: 2px solid $dark_secondary;
-    margin-top: min(15px,5vh);
-    border-radius: 35px;
-    height: min(50px,10vh);
-    display: none;
-    color: white;
 
-    &:hover{
-        background-color: $light_secondary;
-        border: 2px solid $light_secondary;
-        font-size: 120%;
-    }
-}
 
-@media (max-width:640px) {
-    .sidebar{
-        width: 100vw;
-    }
-    .playButton{
-        display: block;
-    }
-}
 
-.avatar{
-    width: min(60px,10vh);
-    height: min(60px,10vh);
-    border: 2px solid white;
-    border-radius: 30px;
-
-    &:hover{
-        border: 3px solid aqua;
-    }
-}
 .chessIoLogo{
     width: 128px;
     height: 64px;

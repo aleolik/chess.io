@@ -4,7 +4,7 @@ import scss from './MultiPlayerBoardComponent.module.scss'
 import { Cell } from '../../../chess-logic/models/Cell'
 import CellComponent from '../CellComponent/CellComponent'
 import useSound from 'use-sound'
-import makeTurn from '../../../assets/makeTurn.mp3'
+import turnTickAudio from '../../../assets/makeTurn.mp3'
 import { Colors } from '../../../chess-logic/models/Colors'
 import { useAppSelector } from '../../../redux/hooks/useAppSelector'
 import { King } from '../../../chess-logic/figures/King'
@@ -17,124 +17,193 @@ import { AvailableWindows, modalSlice } from '../../../redux/reducers/modalReduc
 import ModalWindow, { GameStatusWindow } from '../../ReactComponents/ModalWindow/ModalWindow'
 import BarToDisplayTakenFigures from '../BarToDisplayTakenFigures/BarToDisplayTakenFigures'
 import TimeTransformation from '../../ReactComponents/TimeTransformation/TimeTransformation'
+import { Board } from '../../../chess-logic/models/Board'
+import { webSocketSlice } from '../../../redux/reducers/webSocketReducer'
 
-
-interface MultiPlayerBoardComponentProps{
-    user : {user : IUser,color:Colors},
-    enemyUser : {user : IUser,color:Colors},
-    lobbyId : string,
-}
-
-interface ITimer{
+export interface ITimer{
   time : number,
   intervalId : ReturnType<typeof setInterval> | null
 }
 
-function setTimers(activeTimer:ITimer,setActiveTimer:React.Dispatch<React.SetStateAction<ITimer>>,unactiveTimer:ITimer,setUnactiveTimer:React.Dispatch<React.SetStateAction<ITimer>>){
-  const intervalId = setInterval(() => {
-    setActiveTimer(prevState => ({
-      ...prevState,
-      time : prevState.time - 1
-    }))
-  },1000)
-  setActiveTimer({
-    ...activeTimer,
-    intervalId : intervalId
-  })
-
-
-  if (unactiveTimer.intervalId){
-    clearInterval(unactiveTimer.intervalId)
-    setUnactiveTimer({
-      ...unactiveTimer,
-      intervalId : null
-    })
-  }
-}
-
-function clearTimers(timer:ITimer,setTimer:React.Dispatch<React.SetStateAction<ITimer>>,enemyTimer:ITimer,setEnemyTimer:React.Dispatch<React.SetStateAction<ITimer>>){
-  if (timer.intervalId) {
-    clearInterval(timer.intervalId)
-    setTimer({
-      ...timer,
-      intervalId : null
-    })
-  }
-  if (enemyTimer.intervalId){
-    clearInterval(enemyTimer.intervalId)
-    setEnemyTimer({
-      ...enemyTimer,
-      intervalId : null
-    })
-  }
-}
-
-
-const MultiPlayerBoardComponent : FC<MultiPlayerBoardComponentProps> = ({enemyUser,user,lobbyId}) => {
-  const [selectedCell,setSelectedCell] = useState<null | Cell>(null)
-  const [makeTurnSound] = useSound(makeTurn)
-  const {ws} = useAppSelector(state => state.webSocket)
+const MultiPlayerBoardComponent = () => {
+  const {ws,gameData} = useAppSelector(state => state.webSocket)
   const {board,currentMove,whiteTakenFigures,blackTakenFigures} = useAppSelector(state => state.board)
-  const {updateBoard,changeCurrentMove,addBlackTakenFigure,addWhiteTakenFigure} = boardSlice.actions
+  const [selectedCell,setSelectedCell] = useState<null | Cell>(null)
+  const [makeTurnSound] = useSound(turnTickAudio)
+  const [deepCopiedBoard,setDeepCopiedBoard] = useState<Board>(new Board())
+  const {endGame,activateTimer,deactivateTimer,setIntervalIdForTimer} = webSocketSlice.actions
+  const {updateBoard,changeCurrentMove,addBlackTakenFigure,addWhiteTakenFigure,highlightCells} = boardSlice.actions
   const dispatch = useAppDispatch()
-  const [winner,setWinner] = useState<Colors | null | undefined>(undefined)
-  const [timer,setTimer] = useState<ITimer>({
-    time : 60 * 10, // seconds
-    intervalId : null // there is an interval if it is player's turn
-  })
-  const [enemyTimer,setEnemyTimer] = useState<ITimer>({
-    time : 60 * 10, // seconds
-    intervalId : null // there is an interval if it is player's turn
-  })
   const showGameStatus = modalSlice.actions.showGameStatus
   const {showModal,showWindow} = useAppSelector(state => state.modal)
 
+  // Change active timer to other's,clean intervals
+  const handleTimers = (operation : "CHANGE" | "DEACTIVATE" | "INIT") => {
+    if (gameData && gameData.gameActive) {
+      if (operation === "CHANGE") {
+        if (gameData.clientTimer.intervalId) {
+          dispatch(deactivateTimer({
+            ...gameData.clientTimer,
+            timerType : 'client'
+          }))
+          // set interval that will decrement time for other timer
+          dispatch(setIntervalIdForTimer({
+            timerType : 'enemyClient',
+            intervalId : setInterval(() => {
+              dispatch(activateTimer({
+                timerType : 'enemyClient',
+                ...gameData.enemyClientTimer
+              }))
+            },1000)
+          }))
+        } else {
+          if (gameData.enemyClientTimer.intervalId) {
+            dispatch(deactivateTimer({
+              ...gameData.enemyClientTimer,
+              timerType : 'enemyClient'
+            }))
+            // set interval that will decrement time for other timer
+        dispatch(setIntervalIdForTimer({
+          timerType : 'client',
+          intervalId : setInterval(() => {
+            dispatch(activateTimer({
+              timerType : 'client',
+              ...gameData.clientTimer
+            }))
+          },1000)
+        }))
+          }
+        }
+      }
+      if (operation === "DEACTIVATE") {
+        dispatch(deactivateTimer({
+          ...gameData.clientTimer,
+          timerType : 'client'
+        }))
+        dispatch(deactivateTimer({
+          ...gameData.enemyClientTimer,
+          timerType : 'enemyClient'
+        }))
+      }
+      if (operation === "INIT"){
+        if (gameData.userColor === Colors.WHITE) {
+          dispatch(setIntervalIdForTimer({
+            timerType : 'client',
+            intervalId : setInterval(() => {
+              dispatch(activateTimer({
+                timerType : 'client',
+                ...gameData.clientTimer
+              }))
+            },1000)
+          }))
+        } else {
+          dispatch(setIntervalIdForTimer({
+            timerType : 'enemyClient',
+            intervalId : setInterval(() => {
+              dispatch(activateTimer({
+                timerType : 'enemyClient',
+                ...gameData.enemyClientTimer
+              }))
+            },1000)
+          }))
+        }
+      }
+    }
+  }
 
+   // check for mate or tie
+  const checkForGameStatus = () => {
+    if (board && board.cells.length && gameData && gameData.gameActive) {
+      // make new deep copy board for finding available turns,if 0,then mate or tie
+      setDeepCopiedBoard(board)
+      if (ws && deepCopiedBoard.cells.length && deepCopiedBoard.isMate(currentMove)) {
+        dispatch(showGameStatus())
+        setSelectedCell(null)
+        ws.send(JSON.stringify({
+          "method":SocketMethods.endGame,
+          "winnerColor":gameData.userColor,
+        }))
+        dispatch(endGame(currentMove === Colors.WHITE ? Colors.BLACK : Colors.WHITE))
+      } else {
+        if (ws && gameData && gameData.gameActive && deepCopiedBoard.cells.length && deepCopiedBoard.isTie(currentMove)){
+          dispatch(showGameStatus())
+          ws.send(JSON.stringify({
+            "method":SocketMethods.endGame,
+            "winnerColor":gameData.userColor,
+          }))
+          setSelectedCell(null)
+          dispatch(endGame(null))
+        }
+      }
+    }
+  }
+  const updateBoardUi = () => {
+    if (board && board.cells.length) {
+      if (selectedCell && selectedCell.figure && currentMove !== selectedCell.figure.color){
+        // if not your your turn and you selected your piece - clear all available moves 
+        board.clearAvailablePropertyInCells()
+        return;
+      } else {
+        // for re-rendering
+        updateBoardAction()
+        highlightCellsAction()
+      }
+    };
+  }
 
   const cellOnClick = (targetCell : Cell) => {
+    if (gameData && gameData.gameActive) {
+       // make turn,works if you already selected a cell and the move can be played
       if (selectedCell && (selectedCell.figure?.color !== targetCell.figure?.color || (selectedCell.figure instanceof King && targetCell.figure instanceof Rook && targetCell.figure.color === selectedCell.figure.color))){
-         if (user.color === currentMove) {
-            if (ws && board) {
-              let takenFigureThisMove : null | Figure = null
-              const deepCopyBoard = board.getDeepCopyBoard()
-              if (selectedCell.figure?.canMove(selectedCell,targetCell,board) && !deepCopyBoard.kingWillBeUnderAttack(selectedCell,targetCell,deepCopyBoard)) {
-                if (selectedCell.figure instanceof King && targetCell.figure instanceof Rook && selectedCell.figure.color === targetCell.figure.color) {
-                  // SWAP RULE
-                  selectedCell.figure.moveFigure(selectedCell,targetCell,board,true)
-                } else {
-                  if (targetCell.figure) {
-                    const figureInTargetCell = targetCell.figure as Figure
-                    takenFigureThisMove = figureInTargetCell
-                    if (figureInTargetCell.color === Colors.WHITE) {
-                      dispatch(addWhiteTakenFigure(figureInTargetCell))
-                    } else {
-                      dispatch(addBlackTakenFigure(figureInTargetCell))
-                    }   
-                  }
-                  selectedCell.figure.moveFigure(selectedCell,targetCell,board)
+        if (gameData.userColor === currentMove) {
+          if (ws && board && board.cells) {
+            let takenFigureThisMove : null | Figure = null
+            if (selectedCell.figure?.canMove(selectedCell,targetCell,board) && deepCopiedBoard &&  !deepCopiedBoard.kingWillBeUnderAttack(selectedCell,targetCell)) {
+              if (selectedCell.figure instanceof King && targetCell.figure instanceof Rook && selectedCell.figure.color === targetCell.figure.color) {
+                // SWAP RULE
+                selectedCell.figure.moveFigure(selectedCell,targetCell,board,true)
+              } else {
+                if (targetCell.figure) {
+                  const figureInTargetCell = targetCell.figure as Figure
+                  takenFigureThisMove = figureInTargetCell
+                  if (figureInTargetCell.color === Colors.WHITE) {
+                    dispatch(addWhiteTakenFigure(figureInTargetCell))
+                  } else {
+                    dispatch(addBlackTakenFigure(figureInTargetCell))
+                  }   
                 }
-                ws.send(JSON.stringify({
-                  method : SocketMethods.makeMove,
-                  cells : board.getCellsPropertiesWithoutImg(),
-                  currentMove : currentMove,
-                  lobbyId : lobbyId,
-                  takenFigureThisMove : takenFigureThisMove ? {
-                    id : takenFigureThisMove.id,
-                    color : takenFigureThisMove.color,
-                    name : takenFigureThisMove.name,
-                  } : null,
-                }))
-                dispatch(changeCurrentMove(currentMove === Colors.BLACK ? Colors.WHITE : Colors.BLACK))
-                setSelectedCell(null)
-                makeTurnSound()
+                selectedCell.figure.moveFigure(selectedCell,targetCell,board)
               }
+              ws.send(JSON.stringify({
+                "method" : SocketMethods.makeMove,
+                "updatedBoardCells" : board.getCellsPropertiesWithoutImg(),
+                "wasMove" : currentMove,
+                "lobbyId" : gameData.lobbyId,
+                "clientTime":gameData.clientTimer.time,
+                "enemyClientTime":gameData.enemyClientTimer.time,
+                "takenFigureThisMove" : takenFigureThisMove ? {
+                  id : takenFigureThisMove.id,
+                  color : takenFigureThisMove.color,
+                  name : takenFigureThisMove.name,
+                } : null,
+              }))
+              makeTurnSound()
+              dispatch(changeCurrentMove(currentMove === Colors.BLACK ? Colors.WHITE : Colors.BLACK))
+              checkForGameStatus()
+              handleTimers("CHANGE")
+              setSelectedCell(null)
+              updateBoardUi()
             }
-         }
-      } else {
-        if (!targetCell.figure) return;
-        if (targetCell.figure.color !== user.color) return;
+          }
+        }
+    } else {
+      // change active selected cell,if it is your piece
+      if (targetCell.figure && targetCell.figure.color === gameData.userColor) {
         setSelectedCell(targetCell)
       }
+      }
+    }
+
   }
 
   const updateBoardAction = () => {
@@ -147,76 +216,80 @@ const MultiPlayerBoardComponent : FC<MultiPlayerBoardComponentProps> = ({enemyUs
 
 
 
-  const highlightCells = () => {
-    if (selectedCell && board) {
-      board.highlightCells(selectedCell)
+  const highlightCellsAction = () => {
+    if (selectedCell && board && board.cells.length) {
+      dispatch(highlightCells(selectedCell))
     }
   }
 
-  useEffect(() => {
-    if (!board?.cells?.length || !selectedCell) return;
-    if (selectedCell.figure && currentMove !== selectedCell.figure.color){
-      // if not your your turn and you selected your piece - clear all available moves 
-      board.clearAvailablePropertyInCells()
-      return;
-    }
-    // for re-rendering
-    updateBoardAction()
-    highlightCells()
-  },[selectedCell])
 
 
 
 
 
+
+    
 
   useEffect(() => {
-    // check for mate or tie
-    if (board && board.cells.length && winner === undefined) {
+    // init timers
+    if (gameData && gameData.gameActive) {
+      handleTimers("INIT")
+      // update(set) board
+      updateBoardUi()
+    } 
 
-      // change timer.isActive and enemyTimer.isActive properties
-      if (currentMove === user.color) {
-        // userTimer is set to active and enemyTimer to unactive
-        setTimers(timer,setTimer,enemyTimer,setEnemyTimer)
-      } else {
-        // enemyTime is set to active and userTimer to unactive
-        setTimers(enemyTimer,setEnemyTimer,timer,setTimer)
-      }
-
-      // check game status
-      if (board.isMate(currentMove)) {
-        setWinner(currentMove === Colors.WHITE ? Colors.BLACK : Colors.WHITE)
-        dispatch(showGameStatus())
-        setSelectedCell(null)
-        clearTimers(timer,setTimer,enemyTimer,setEnemyTimer)
-        return;
-      }
-      if (!winner && board.isTie(currentMove)){
-        setWinner(null)
-        dispatch(showGameStatus())
-        setSelectedCell(null)
-        clearTimers(timer,setTimer,enemyTimer,setEnemyTimer)
-        return;
-      }
+    return () => {
+      handleTimers("DEACTIVATE")
+      console.log("both timers were deactivated!")
     }
-  },[currentMove])
+  },[gameData?.gameActive])
+
+  useEffect(() => {
+    // UseEffect,for checking game ending by time
+    if (gameData) {
+      if (gameData && gameData.clientTimer.time <= 0 && ws) {
+        ws.send(JSON.stringify({
+          "method":SocketMethods.endGame,
+          "winnerColor" : gameData.userColor === Colors.BLACK ? Colors.WHITE : Colors.BLACK
+        }))
+        handleTimers("DEACTIVATE")
+        dispatch(endGame(gameData.userColor === Colors.BLACK ? Colors.WHITE : Colors.BLACK))
+        dispatch(showGameStatus())
+      }
+      if (gameData && gameData.enemyClientTimer.time <= 0 && ws) {
+        // TODO : clean timers
+        ws.send(JSON.stringify({
+          "method":SocketMethods.endGame,
+          "winnerColor":gameData.userColor,
+        }))
+        handleTimers("DEACTIVATE")
+        dispatch(endGame(gameData.userColor))
+        dispatch(showGameStatus())
+      }
+
+
+    }
+
+  },[gameData?.clientTimer.time,gameData?.enemyClientTimer.time])
 
 
   return (
-    <div>
-        {user.color === Colors.BLACK && (
+    <div className={scss.container}>
+        {gameData?.userColor === Colors.BLACK && (
           <BarToDisplayTakenFigures color={Colors.BLACK} takenFigures={blackTakenFigures}/>
         )}
-         {user.color === Colors.WHITE && (
+         {gameData?.userColor === Colors.WHITE && (
           <BarToDisplayTakenFigures color={Colors.WHITE} takenFigures={whiteTakenFigures}/>
         )}
-        {showModal && showWindow === AvailableWindows.GameStatus && winner !== undefined && (
-            <ModalWindow children={<GameStatusWindow isWinner={winner}/>}/>
+        {showModal && showWindow === AvailableWindows.GameStatus && gameData && !gameData.gameActive && (
+            <ModalWindow children={<GameStatusWindow isWinner={gameData.winner}/>}/>
         )}
-        <TimeTransformation time={enemyTimer.time}/>
+        {gameData && (
+          <TimeTransformation time={gameData.enemyClientTimer.time}/>
+        )}
         <div className={scss.board}>
           <>
-            {user.color && user.color === Colors.BLACK
+            {gameData?.userColor === Colors.BLACK
             ? (
               <>
               {board?.cells.slice().reverse().map((cellRow:Cell[],index) => {
@@ -259,11 +332,13 @@ const MultiPlayerBoardComponent : FC<MultiPlayerBoardComponentProps> = ({enemyUs
             )}
           </>
       </div>
-      <TimeTransformation time={timer.time}/>
-      {user.color === Colors.BLACK && (
+      {gameData && (
+          <TimeTransformation time={gameData.clientTimer.time}/>
+        )}
+      {gameData?.userColor === Colors.BLACK && (
           <BarToDisplayTakenFigures color={Colors.WHITE} takenFigures={whiteTakenFigures}/>
       )}
-      {user.color === Colors.WHITE && (
+      {gameData?.userColor === Colors.WHITE && (
         <BarToDisplayTakenFigures color={Colors.BLACK} takenFigures={blackTakenFigures}/>
       )}
     </div>

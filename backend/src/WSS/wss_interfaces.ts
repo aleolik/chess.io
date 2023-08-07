@@ -1,5 +1,8 @@
+import { Board } from "../chess-logic/models/Board"
+import { Cell } from "../chess-logic/models/Cell"
+import { Figure, FigureNames } from "../chess-logic/models/Figure"
 import { IUser } from "../interfaces"
-import { WebSocket } from "ws"
+import { WebSocket, WebSocketServer } from "ws"
 
 export enum SocketMethods {
     // when 2 websockets are active they recive lobbyId
@@ -17,18 +20,47 @@ export enum SocketMethods {
         2)cells are already with a made move,so send it to client
     */
     makeMove="makeMove",
+    // close webSocket
+    closeWebsocket = "closeWebsocket",
+    // update board state
+    updateBoardState = "updateBoardState",
+    // updates taken figures state
+    updateTakenFiguresState = "updateTakenFiguresState",
+    endGame="endGame"
 }
 export interface IMsg {
     method : string
     [key : string] : unknown
 }
-export interface customWebSocket extends WebSocket {
+
+export interface ITimer{
+    time : number,
+    intervalId : ReturnType<typeof setInterval> | null
+ }
+export interface IGameData{
+    lobbyId : string,
+    enemyUser : {user : IUser,color:Colors}
+    gameActive : boolean
+    userColor : Colors
+    currentMove : Colors
+    boardCells : Cell[][]
+    takenFigures : Array<{id:string,color:Colors,name:FigureNames}>
+    clientTimer : ITimer
+    enemyClientTimer : ITimer
+    winner : null | Colors
+}
+
+
+
+export interface ICustomWebSocketServer extends WebSocketServer {
+    activeGames : { [key : string] : IGameData}
+}
+
+export interface ICustomWebSocket extends WebSocket {
     inQueue : boolean
     id : string
     user : IUser
-    color? : Colors
-    currentMove? : Colors
-    lobbyId? : string
+    gameData : IGameData
 }
 
 

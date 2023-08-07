@@ -2,15 +2,9 @@ import React, { useEffect, useState } from 'react'
 import scss from './SideBar.module.scss'
 import { useAppDispatch } from '../../../redux/hooks/useAppDispatch'
 import { useAppSelector } from '../../../redux/hooks/useAppSelector'
-import { AvailableWindows, modalSlice } from '../../../redux/reducers/modalReducer'
-import ModalWindow from '../ModalWindow/ModalWindow'
-import RegisterForm from '../RegisterForm/RegisterForm'
-import LoginForm from '../LoginForm/LoginForm'
-import defaultUserIcon from '../../../assets/media/defaultUserIcon.png'
+import { modalSlice } from '../../../redux/reducers/modalReducer'
 import { useLogout } from '../../../hooks/useLogout'
 import { NavLink, useNavigate } from 'react-router-dom'
-import chessLogo from '../../../assets/media/chessLogo.png'
-import { isMobile } from 'react-device-detect'
 import chessIoLogo from '../../../assets/media/chessio-logo.png'
 import useCookie from '../../../hooks/useCookie'
 
@@ -24,6 +18,10 @@ const navigationLinks : ICustomLink[] = [
     {
         text : "ChessIo",
         to : "/"
+    },
+    {
+        text : "News",
+        to : "/news"
     },
 ]
 
@@ -55,7 +53,6 @@ const SideBar = () => {
         <img onClick={() => navigate('/')} src={chessIoLogo} alt='logo' className={scss.chessIoLogo}></img>
         <div>
             <div className={scss.container}>
-                <img src={chessLogo} alt="logo" className={scss.sidebarLogo}/>
                 {token
                 ? (<button onClick={userLogout} className={scss.sidebarButton}>Logout</button>)
                 :(
@@ -77,9 +74,6 @@ const SideBar = () => {
                         </NavLink>
                     )
                     })}
-                    {isMobile && (
-                    <button className={scss.playButton}>Play</button>
-                    )}
             </div>
         </div>  
     </div>
