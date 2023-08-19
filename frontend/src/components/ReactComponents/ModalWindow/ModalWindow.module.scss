@@ -9,6 +9,7 @@ $maxWidth:560px;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.6);
     z-index: 99999999999999999999999999999999999;
+    transition: opacity 1s, transform 0.3s;
 }
 
 .modal_content{
@@ -28,6 +29,7 @@ $maxWidth:560px;
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    opacity: 1;
 }
 
 

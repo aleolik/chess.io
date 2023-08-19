@@ -10,10 +10,11 @@ export class Pawn extends Figure{
 
     isFirstTurn : boolean = true
 
-    constructor(color:Colors){
+    constructor(color:Colors,isFirstTurn : boolean = true){
         super(color)
         this.name = FigureNames.PAWN
         this.img = color === Colors.WHITE ? whitePawn : blackPawn
+        this.isFirstTurn = isFirstTurn
     }
 
     canMove(fromCell: Cell,targetCell:Cell,board:Board): boolean {

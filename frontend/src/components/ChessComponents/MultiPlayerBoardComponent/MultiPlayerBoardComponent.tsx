@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useEffect, useRef, useState } from 'react'
 import { IUser } from '../../../interfaces/IUser'
 import scss from './MultiPlayerBoardComponent.module.scss'
 import { Cell } from '../../../chess-logic/models/Cell'
@@ -11,7 +11,6 @@ import { King } from '../../../chess-logic/figures/King'
 import { Rook } from '../../../chess-logic/figures/Rook'
 import { Figure } from '../../../chess-logic/models/Figure'
 import { SocketMethods } from '../../../interfaces/ws_interfaces'
-import { boardSlice } from '../../../redux/reducers/boardRedurcer'
 import { useAppDispatch } from '../../../redux/hooks/useAppDispatch'
 import { AvailableWindows, modalSlice } from '../../../redux/reducers/modalReducer'
 import ModalWindow, { GameStatusWindow } from '../../ReactComponents/ModalWindow/ModalWindow'
@@ -19,6 +18,8 @@ import BarToDisplayTakenFigures from '../BarToDisplayTakenFigures/BarToDisplayTa
 import TimeTransformation from '../../ReactComponents/TimeTransformation/TimeTransformation'
 import { Board } from '../../../chess-logic/models/Board'
 import { webSocketSlice } from '../../../redux/reducers/webSocketReducer'
+import { createFigureByProperties } from '../../../utils/createFigureByProperties'
+import {DeactivateTimersAsync,ActivateTimerAsync,ChangeTimerAsync} from '../../../redux/AsyncActions/TimerOperationsAsync'
 
 export interface ITimer{
   time : number,
@@ -27,122 +28,86 @@ export interface ITimer{
 
 const MultiPlayerBoardComponent = () => {
   const {ws,gameData} = useAppSelector(state => state.webSocket)
-  const {board,currentMove,whiteTakenFigures,blackTakenFigures} = useAppSelector(state => state.board)
   const [selectedCell,setSelectedCell] = useState<null | Cell>(null)
   const [makeTurnSound] = useSound(turnTickAudio)
   const [deepCopiedBoard,setDeepCopiedBoard] = useState<Board>(new Board())
-  const {endGame,activateTimer,deactivateTimer,setIntervalIdForTimer} = webSocketSlice.actions
-  const {updateBoard,changeCurrentMove,addBlackTakenFigure,addWhiteTakenFigure,highlightCells} = boardSlice.actions
+  const {endGame,highlightCells,changeCurrentMove,updateBoardForRender,addTakenFigure,clearGameData} = webSocketSlice.actions
   const dispatch = useAppDispatch()
   const showGameStatus = modalSlice.actions.showGameStatus
   const {showModal,showWindow} = useAppSelector(state => state.modal)
+  const user = useAppSelector(state => state.user.user)
+  const isMountedRef = useRef(false)
 
   // Change active timer to other's,clean intervals
-  const handleTimers = (operation : "CHANGE" | "DEACTIVATE" | "INIT") => {
-    if (gameData && gameData.gameActive) {
+  const handleTimers = async(operation : "CHANGE" | "DEACTIVATE" | "INIT") => {
+    console.log("current operation",operation)
+    console.log("current state",gameData)
+    if (gameData) {
       if (operation === "CHANGE") {
         if (gameData.clientTimer.intervalId) {
-          dispatch(deactivateTimer({
-            ...gameData.clientTimer,
-            timerType : 'client'
-          }))
-          // set interval that will decrement time for other timer
-          dispatch(setIntervalIdForTimer({
-            timerType : 'enemyClient',
-            intervalId : setInterval(() => {
-              dispatch(activateTimer({
-                timerType : 'enemyClient',
-                ...gameData.enemyClientTimer
-              }))
-            },1000)
-          }))
+          await dispatch(ChangeTimerAsync())
         } else {
           if (gameData.enemyClientTimer.intervalId) {
-            dispatch(deactivateTimer({
-              ...gameData.enemyClientTimer,
-              timerType : 'enemyClient'
-            }))
-            // set interval that will decrement time for other timer
-        dispatch(setIntervalIdForTimer({
-          timerType : 'client',
-          intervalId : setInterval(() => {
-            dispatch(activateTimer({
-              timerType : 'client',
-              ...gameData.clientTimer
-            }))
-          },1000)
-        }))
+            await dispatch(ChangeTimerAsync())
           }
         }
       }
       if (operation === "DEACTIVATE") {
-        dispatch(deactivateTimer({
-          ...gameData.clientTimer,
-          timerType : 'client'
-        }))
-        dispatch(deactivateTimer({
-          ...gameData.enemyClientTimer,
-          timerType : 'enemyClient'
-        }))
+       await dispatch(DeactivateTimersAsync())
       }
       if (operation === "INIT"){
-        if (gameData.userColor === Colors.WHITE) {
-          dispatch(setIntervalIdForTimer({
-            timerType : 'client',
-            intervalId : setInterval(() => {
-              dispatch(activateTimer({
-                timerType : 'client',
-                ...gameData.clientTimer
-              }))
-            },1000)
-          }))
-        } else {
-          dispatch(setIntervalIdForTimer({
-            timerType : 'enemyClient',
-            intervalId : setInterval(() => {
-              dispatch(activateTimer({
-                timerType : 'enemyClient',
-                ...gameData.enemyClientTimer
-              }))
-            },1000)
-          }))
-        }
+        await dispatch(ActivateTimerAsync(gameData.currentMove))
       }
+    }
+  }
+
+  const updateBoardAction = () => {
+    if (gameData && gameData.board) {
+      const newBoard = gameData.board.getCopyBoard()
+      // for re-rendering
+      dispatch(updateBoardForRender(newBoard))
+    }
+  }
+
+
+
+  const highlightCellsAction = () => {
+    if (selectedCell && gameData && gameData.board) {
+      dispatch(highlightCells(selectedCell))
     }
   }
 
    // check for mate or tie
   const checkForGameStatus = () => {
-    if (board && board.cells.length && gameData && gameData.gameActive) {
-      // make new deep copy board for finding available turns,if 0,then mate or tie
-      setDeepCopiedBoard(board)
-      if (ws && deepCopiedBoard.cells.length && deepCopiedBoard.isMate(currentMove)) {
+    if (gameData && gameData.gameActive && gameData.board) {
+      if (ws && deepCopiedBoard.cells.length && deepCopiedBoard.isMate(gameData.currentMove)) {
         dispatch(showGameStatus())
         setSelectedCell(null)
+        dispatch(endGame(gameData.currentMove === Colors.WHITE ? Colors.BLACK : Colors.WHITE))
         ws.send(JSON.stringify({
           "method":SocketMethods.endGame,
+          "lobbyId":gameData.lobbyId,
           "winnerColor":gameData.userColor,
         }))
-        dispatch(endGame(currentMove === Colors.WHITE ? Colors.BLACK : Colors.WHITE))
       } else {
-        if (ws && gameData && gameData.gameActive && deepCopiedBoard.cells.length && deepCopiedBoard.isTie(currentMove)){
+        if (ws && gameData && gameData.gameActive && deepCopiedBoard.cells.length && deepCopiedBoard.isTie(gameData.currentMove)){
           dispatch(showGameStatus())
+          dispatch(endGame(null))
           ws.send(JSON.stringify({
             "method":SocketMethods.endGame,
+            "lobbyId":gameData.lobbyId,
             "winnerColor":gameData.userColor,
           }))
           setSelectedCell(null)
-          dispatch(endGame(null))
         }
       }
     }
   }
   const updateBoardUi = () => {
-    if (board && board.cells.length) {
-      if (selectedCell && selectedCell.figure && currentMove !== selectedCell.figure.color){
+    if (gameData && gameData.board) {
+      if (selectedCell && selectedCell.figure && gameData.currentMove !== selectedCell.figure.color){
         // if not your your turn and you selected your piece - clear all available moves 
-        board.clearAvailablePropertyInCells()
-        return;
+        gameData.board.clearAvailablePropertyInCells()
       } else {
         // for re-rendering
         updateBoardAction()
@@ -155,116 +120,111 @@ const MultiPlayerBoardComponent = () => {
     if (gameData && gameData.gameActive) {
        // make turn,works if you already selected a cell and the move can be played
       if (selectedCell && (selectedCell.figure?.color !== targetCell.figure?.color || (selectedCell.figure instanceof King && targetCell.figure instanceof Rook && targetCell.figure.color === selectedCell.figure.color))){
-        if (gameData.userColor === currentMove) {
-          if (ws && board && board.cells) {
-            let takenFigureThisMove : null | Figure = null
-            if (selectedCell.figure?.canMove(selectedCell,targetCell,board) && deepCopiedBoard &&  !deepCopiedBoard.kingWillBeUnderAttack(selectedCell,targetCell)) {
+        if (gameData.userColor === gameData.currentMove) {
+          if (ws && gameData.board) {
+            if (selectedCell.figure?.canMove(selectedCell,targetCell,gameData.board) && deepCopiedBoard.cells.length &&  !deepCopiedBoard.kingWillBeUnderAttack(selectedCell,targetCell)) {
+              let takenFigureThisMove : null | Figure = null
               if (selectedCell.figure instanceof King && targetCell.figure instanceof Rook && selectedCell.figure.color === targetCell.figure.color) {
                 // SWAP RULE
-                selectedCell.figure.moveFigure(selectedCell,targetCell,board,true)
+                selectedCell.figure.moveFigure(selectedCell,targetCell,gameData.board,true)
               } else {
                 if (targetCell.figure) {
                   const figureInTargetCell = targetCell.figure as Figure
-                  takenFigureThisMove = figureInTargetCell
-                  if (figureInTargetCell.color === Colors.WHITE) {
-                    dispatch(addWhiteTakenFigure(figureInTargetCell))
-                  } else {
-                    dispatch(addBlackTakenFigure(figureInTargetCell))
-                  }   
+                  takenFigureThisMove = createFigureByProperties(figureInTargetCell)
+                  dispatch(addTakenFigure(figureInTargetCell))
                 }
-                selectedCell.figure.moveFigure(selectedCell,targetCell,board)
+                selectedCell.figure.moveFigure(selectedCell,targetCell,gameData.board)
               }
+              makeTurnSound()
               ws.send(JSON.stringify({
                 "method" : SocketMethods.makeMove,
-                "updatedBoardCells" : board.getCellsPropertiesWithoutImg(),
-                "wasMove" : currentMove,
+                "updatedBoardCells" : gameData.board.cells,
+                "wasMove" : gameData.currentMove,
                 "lobbyId" : gameData.lobbyId,
                 "clientTime":gameData.clientTimer.time,
                 "enemyClientTime":gameData.enemyClientTimer.time,
-                "takenFigureThisMove" : takenFigureThisMove ? {
-                  id : takenFigureThisMove.id,
-                  color : takenFigureThisMove.color,
-                  name : takenFigureThisMove.name,
-                } : null,
+                "whiteTakenFigures":takenFigureThisMove && takenFigureThisMove.color === Colors.WHITE ? [...gameData.whiteTakenFigures,takenFigureThisMove] : gameData.whiteTakenFigures,
+                "blackTakenFigures":takenFigureThisMove && takenFigureThisMove.color === Colors.BLACK ? [...gameData.blackTakenFigures,takenFigureThisMove] : gameData.blackTakenFigures,
               }))
-              makeTurnSound()
-              dispatch(changeCurrentMove(currentMove === Colors.BLACK ? Colors.WHITE : Colors.BLACK))
-              checkForGameStatus()
-              handleTimers("CHANGE")
+              dispatch(changeCurrentMove(gameData.currentMove === Colors.BLACK ? Colors.WHITE : Colors.BLACK))
               setSelectedCell(null)
-              updateBoardUi()
             }
           }
         }
     } else {
       // change active selected cell,if it is your piece
       if (targetCell.figure && targetCell.figure.color === gameData.userColor) {
-        setSelectedCell(targetCell)
+          setSelectedCell(targetCell)
+        }
       }
+    }
+
+  }
+
+    useEffect(() => {
+      if (gameData && gameData.board) {
+        updateBoardUi()
       }
-    }
+    },[selectedCell])
 
-  }
+    useEffect(() => {
+      if (gameData && gameData.board) {
+        if (gameData.clientTimer.intervalId === null && gameData.enemyClientTimer.intervalId === null && gameData.gameActive) {
+          handleTimers("INIT")
+        } 
 
-  const updateBoardAction = () => {
-    if (board) {
-      const newBoard = board.getCopyBoard()
-      // for re-rendering
-      dispatch(updateBoard(newBoard))
-    }
-  }
-
-
-
-  const highlightCellsAction = () => {
-    if (selectedCell && board && board.cells.length) {
-      dispatch(highlightCells(selectedCell))
-    }
-  }
+        return () => {
+          // clear data,when component umnmounts
+          handleTimers("DEACTIVATE")
+          if (gameData.gameActive === false) {
+            dispatch(clearGameData())
+          }
+        }
+      }
+    },[gameData?.gameActive])
 
 
+    useEffect(() => {
+      if (gameData && gameData.board) {
+          // make new deep copy board for finding available turns,if 0,then mate or tie
+        setDeepCopiedBoard(gameData.board)
+        checkForGameStatus()
+        handleTimers("CHANGE")
+      }
+    },[gameData?.currentMove])
 
-
-
-
-
-    
-
-  useEffect(() => {
-    // init timers
-    if (gameData && gameData.gameActive) {
-      handleTimers("INIT")
-      // update(set) board
-      updateBoardUi()
-    } 
-
-    return () => {
-      handleTimers("DEACTIVATE")
-      console.log("both timers were deactivated!")
-    }
-  },[gameData?.gameActive])
 
   useEffect(() => {
     // UseEffect,for checking game ending by time
-    if (gameData) {
+    if (gameData && ws) {
+      // update data in AWSS
+      // TODO : fix updateTimeState system
+      ws.send(JSON.stringify({
+        "method" : SocketMethods.updateTimeState,
+        "clientTime":gameData.clientTimer.time,
+        "enemyClientTime":gameData.enemyClientTimer.time
+      }))
       if (gameData && gameData.clientTimer.time <= 0 && ws) {
-        ws.send(JSON.stringify({
-          "method":SocketMethods.endGame,
-          "winnerColor" : gameData.userColor === Colors.BLACK ? Colors.WHITE : Colors.BLACK
-        }))
-        handleTimers("DEACTIVATE")
-        dispatch(endGame(gameData.userColor === Colors.BLACK ? Colors.WHITE : Colors.BLACK))
-        dispatch(showGameStatus())
+        handleTimers("DEACTIVATE").then(() => {
+          ws.send(JSON.stringify({
+            "method":SocketMethods.endGame,
+            "lobbyId":gameData.lobbyId,
+            "winnerColor" : gameData.userColor === Colors.BLACK ? Colors.WHITE : Colors.BLACK
+          }))
+          dispatch(endGame(gameData.userColor === Colors.BLACK ? Colors.WHITE : Colors.BLACK))
+          dispatch(showGameStatus())
+        })
       }
       if (gameData && gameData.enemyClientTimer.time <= 0 && ws) {
-        // TODO : clean timers
-        ws.send(JSON.stringify({
-          "method":SocketMethods.endGame,
-          "winnerColor":gameData.userColor,
-        }))
-        handleTimers("DEACTIVATE")
-        dispatch(endGame(gameData.userColor))
-        dispatch(showGameStatus())
+        handleTimers("DEACTIVATE").then(() => {
+          ws.send(JSON.stringify({
+            "method":SocketMethods.endGame,
+            "lobbyId":gameData.lobbyId,
+            "winnerColor":gameData.userColor,
+          }))
+          dispatch(endGame(gameData.userColor))
+          dispatch(showGameStatus())
+        })
       }
 
 
@@ -275,72 +235,81 @@ const MultiPlayerBoardComponent = () => {
 
   return (
     <div className={scss.container}>
-        {gameData?.userColor === Colors.BLACK && (
-          <BarToDisplayTakenFigures color={Colors.BLACK} takenFigures={blackTakenFigures}/>
-        )}
-         {gameData?.userColor === Colors.WHITE && (
-          <BarToDisplayTakenFigures color={Colors.WHITE} takenFigures={whiteTakenFigures}/>
-        )}
-        {showModal && showWindow === AvailableWindows.GameStatus && gameData && !gameData.gameActive && (
-            <ModalWindow children={<GameStatusWindow isWinner={gameData.winner}/>}/>
-        )}
-        {gameData && (
-          <TimeTransformation time={gameData.enemyClientTimer.time}/>
-        )}
-        <div className={scss.board}>
+        {gameData && ws &&
+        (
           <>
-            {gameData?.userColor === Colors.BLACK
-            ? (
-              <>
-              {board?.cells.slice().reverse().map((cellRow:Cell[],index) => {
-                return (
-                  <React.Fragment key={index+"reversed-desk"}>
-                    {cellRow.map((cell) => {
-                      return (
-                        <CellComponent
-                          onClick={cellOnClick} 
-                          cell={cell}
-                          selectedCell={selectedCell}
-                          key={cell.id+"reversed-desk"}
-                        />
-                      )
-                    })}           
-                  </React.Fragment>
-                )
-                })}
-              </>
-            )
-            : (
-              <>
-                {board?.cells.map((cellRow:Cell[],index) => {
-                return (
-                  <React.Fragment key={index+"not-reversed-desk"}>
-                    {cellRow.map((cell) => {
-                      return (
-                        <CellComponent
-                          onClick={cellOnClick} 
-                          cell={cell}
-                          selectedCell={selectedCell}
-                          key={cell.id+"not-reversed-desk"}
-                        />
-                      )
-                    })}           
-                  </React.Fragment>
-                )
-                })}
-              </>
-            )}
-          </>
-      </div>
-      {gameData && (
-          <TimeTransformation time={gameData.clientTimer.time}/>
+          {gameData.gameActive === false && (
+            <div style={{'color':'white','fontSize':'10px','letterSpacing':'0.1rem'}}>User {gameData.winner === gameData.userColor ? user?.email : gameData.enemyUser.user.email} won</div>
+          )}
+          {gameData?.userColor === Colors.BLACK && (
+            <BarToDisplayTakenFigures color={Colors.BLACK} takenFigures={gameData.blackTakenFigures}/>
+          )}
+          {gameData?.userColor === Colors.WHITE && (
+            <BarToDisplayTakenFigures color={Colors.WHITE} takenFigures={gameData.whiteTakenFigures}/>
+          )}
+          {showModal && showWindow === AvailableWindows.GameStatus && gameData && !gameData.gameActive && (
+              <ModalWindow children={<GameStatusWindow isWinner={gameData.winner}/>}/>
+          )}
+          {gameData && (
+            <TimeTransformation time={gameData.enemyClientTimer.time}/>
+          )}
+          <div className={scss.board}>
+            <>
+              {gameData?.userColor === Colors.BLACK
+              ? (
+                <>
+                {gameData.board?.cells.slice().reverse().map((cellRow:Cell[],index) => {
+                  return (
+                    <React.Fragment key={index+"reversed-desk"}>
+                      {cellRow.map((cell) => {
+                        return (
+                          <CellComponent
+                            onClick={cellOnClick} 
+                            cell={cell}
+                            selectedCell={selectedCell}
+                            key={cell.id+"reversed-desk"}
+                          />
+                        )
+                      })}           
+                    </React.Fragment>
+                  )
+                  })}
+                </>
+              )
+              : (
+                <>
+                  {gameData?.board?.cells.map((cellRow:Cell[],index) => {
+                  return (
+                    <React.Fragment key={index+"not-reversed-desk"}>
+                      {cellRow.map((cell) => {
+                        return (
+                          <CellComponent
+                            onClick={cellOnClick} 
+                            cell={cell}
+                            selectedCell={selectedCell}
+                            key={cell.id+"not-reversed-desk"}
+                          />
+                        )
+                      })}           
+                    </React.Fragment>
+                  )
+                  })}
+                </>
+              )}
+            </>
+        </div>
+        {gameData && (
+            <TimeTransformation time={gameData.clientTimer.time}/>
+          )}
+        {gameData?.userColor === Colors.BLACK && (
+            <BarToDisplayTakenFigures color={Colors.WHITE} takenFigures={gameData.whiteTakenFigures}/>
         )}
-      {gameData?.userColor === Colors.BLACK && (
-          <BarToDisplayTakenFigures color={Colors.WHITE} takenFigures={whiteTakenFigures}/>
-      )}
-      {gameData?.userColor === Colors.WHITE && (
-        <BarToDisplayTakenFigures color={Colors.BLACK} takenFigures={blackTakenFigures}/>
-      )}
+        {gameData?.userColor === Colors.WHITE && (
+          <BarToDisplayTakenFigures color={Colors.BLACK} takenFigures={gameData.blackTakenFigures}/>
+        )}
+       </>
+      )
+    }
     </div>
   )
 }

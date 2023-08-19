@@ -1,27 +1,32 @@
 import {useEffect, useState } from 'react'
-import {IGameData, IGameDataBackend, SocketMethods} from '../interfaces/ws_interfaces'
+import {IGameData, SocketMethods} from '../interfaces/ws_interfaces'
 import {useNavigate} from 'react-router-dom'
-import { IUser } from '../interfaces/IUser'
 import { useAppSelector } from '../redux/hooks/useAppSelector'
 import webSocketUrl from '../axios/webSocketInstance'
 import { useAppDispatch } from '../redux/hooks/useAppDispatch'
 import { webSocketSlice } from '../redux/reducers/webSocketReducer'
 import { Colors } from '../chess-logic/models/Colors'
-import { boardSlice } from '../redux/reducers/boardRedurcer'
 import { Cell } from '../chess-logic/models/Cell'
 import { Figure, FigureNames } from '../chess-logic/models/Figure'
 import { createFigureByProperties } from '../utils/createFigureByProperties'
 import { parseCells } from '../utils/parseCells'
+import { parseFigures } from '../utils/parseFigures'
+import { modalSlice } from '../redux/reducers/modalReducer'
 
 
-
+interface IGameDataBackend extends IGameData {
+    clientTime : number,
+    enemyClientTime : number
+}
 
 export const useWebSocket = ()  : void => {
     const user = useAppSelector(state => state.user.user)
     const navigate = useNavigate()
-    const {connection,startQueue,endQueue,setUser,resetSocket,startGame}  = webSocketSlice.actions
+    const {connection,startQueue,endQueue,setUser,resetSocket,startGame,initializeNewBoard,updateCellsInExistingBoard,setTakenFigures,updateGameDataAftetMove,endGame}  = webSocketSlice.actions
+    const ws = useAppSelector(state => state.webSocket.ws)
+    const showGameStauts = modalSlice.actions.showGameStatus
     const dispatch = useAppDispatch()
-    const {updateCells,changeCurrentMove,addBlackTakenFigure,addWhiteTakenFigure,initNewBoard,setTakenFigures} = boardSlice.actions
+    const gameDataState = useAppSelector(state => state.webSocket.gameData)
     useEffect(() => {
         if (user) {
             try {
@@ -33,45 +38,65 @@ export const useWebSocket = ()  : void => {
                         user : user,
                     }))           
                     newWebSocket.onmessage = (event : MessageEvent<any>) => {
-                        const data : any = JSON.parse(event.data)
+                        const data : {method : string,[key : string] : unknown} = JSON.parse(event.data)
                         switch (data.method) {
                             case SocketMethods.connection:
+                                dispatch(setUser(user))
                                 if (data?.gameData) {
                                     const gameData = data.gameData as IGameDataBackend
+                                    console.log("connectiion data",gameData)
+                                    // TODO : try to add if (user),then ...
                                     dispatch(startGame({
-                                        gameActive : gameData.gameActive,
-                                        currentMove : gameData.currentMove,
-                                        lobbyId : gameData.lobbyId,
-                                        userColor : gameData.userColor,
-                                        enemyUser : gameData.enemyUser,
-                                        clientTimer : gameData.clientTimer,
-                                        enemyClientTimer : gameData.enemyClientTimer,
-                                        winner : gameData.winner
+                                        ...gameData,
+                                        clientTimer : {
+                                            intervalId : null,
+                                            time : gameData.clientTime
+                                        },
+                                        enemyClientTimer : {
+                                            intervalId : null,
+                                            time : gameData.enemyClientTime
+                                        },
+                                        board : null,
+                                        blackTakenFigures : [],
+                                        whiteTakenFigures : []
                                     }))
-                                    dispatch(initNewBoard())
-                                    dispatch(updateCells(parseCells(gameData.boardCells)))
-                                    // transform taken figures to object instances
-                                    const whiteTakenFigures : Array<Figure> = []
-                                    const blackTakenFigures : Array<Figure> = []
-                                    for (let figure of gameData.takenFigures){
-                                        const newFigure = createFigureByProperties(figure.name,figure.color)
-                                        if (newFigure) {
-                                            if (newFigure.color === Colors.WHITE) {
-                                                whiteTakenFigures.push(newFigure)
-                                            } else {
-                                                blackTakenFigures.push(newFigure)
-                                            }
-                                        }
+                                    dispatch(initializeNewBoard())
+                                    if (gameData.gameActive && gameData.board) {
+                                        // means game already started and user refreshed page,so re-render last state that saved in WSS.activeGames[ws.id]
+                                        dispatch(updateCellsInExistingBoard(parseCells(gameData.board.cells)))
                                     }
-                                    
-                                    if (whiteTakenFigures.length) {
-                                        dispatch(setTakenFigures({takenFigures:whiteTakenFigures,color:Colors.WHITE}))
-                                    }
-                                    if (blackTakenFigures.length) {
-                                        dispatch(setTakenFigures({takenFigures:blackTakenFigures,color:Colors.BLACK}))
+                                    if (gameData.gameActive && (gameData.blackTakenFigures.length || gameData.whiteTakenFigures.length)) {
+                                         // means game already started and user refreshed page,so re-render last state that saved in WSS.activeGames[ws.id]
+                                         if (gameData.blackTakenFigures.length) {
+                                            const tempArr = []
+                                            for (let figure of gameData.blackTakenFigures){
+                                                // add to every newFigure class methods,that were erased.
+                                                const newFigure = createFigureByProperties(figure)
+                                                if (newFigure) {
+                                                    tempArr.push(newFigure)
+                                                }
+                                            } 
+                                            dispatch(setTakenFigures({
+                                                takenFigures : tempArr,
+                                                color : Colors.BLACK
+                                            }))
+                                         }
+                                         if (gameData.whiteTakenFigures.length) {
+                                            const tempArr = []
+                                            for (let figure of gameData.whiteTakenFigures){
+                                                // add to every newFigure class methods,that were erased.
+                                                const newFigure = createFigureByProperties(figure)
+                                                if (newFigure) {
+                                                    tempArr.push(newFigure)
+                                                }
+                                            } 
+                                            dispatch(setTakenFigures({
+                                                takenFigures : tempArr,
+                                                color : Colors.WHITE
+                                            }))
+                                         }
                                     }
                                 }
-                                dispatch(setUser(user))
                                 break;
                             case SocketMethods.startQueue:
                                 dispatch(startQueue())
@@ -80,33 +105,63 @@ export const useWebSocket = ()  : void => {
                                 dispatch(endQueue())
                                 break;
                             case SocketMethods.getLobby:
-                                const gameDataFromWs = data.gameData as IGameData
-                                // gameDataFromWs.boardCells = parseCells(gameDataFromWs.boardCells)
-                                dispatch(startGame(gameDataFromWs))
-                                dispatch(initNewBoard())
-                                navigate(`multi-player/${gameDataFromWs.lobbyId}`)  
+                                // user found a game,recive data and redirect him
+                                if (data?.gameData) {
+                                    const gameData = data.gameData as IGameDataBackend
+                                    dispatch(startGame({
+                                        clientTimer : {
+                                            intervalId : null,
+                                            time : gameData.clientTime
+                                        },
+                                        enemyClientTimer : {
+                                            intervalId : null,
+                                            time : gameData.enemyClientTime
+                                        },
+                                        currentMove : gameData.currentMove,
+                                        gameActive : gameData.gameActive,
+                                        lobbyId : gameData.lobbyId,
+                                        userColor : gameData.userColor,
+                                        enemyUser : gameData.enemyUser,
+                                        winner : null,
+                                        board : null,
+                                        whiteTakenFigures : [],
+                                        blackTakenFigures : [],
+                                    }))
+                                    dispatch(initializeNewBoard())
+                                    navigate(`multi-player/${gameData.lobbyId}`)  
+                                }
                                 break;
-                            case SocketMethods.updateBoardState:
-                                 dispatch(updateCells(parseCells(data.updatedBoardCells as Cell[][])))
-                                 dispatch(changeCurrentMove(data.currentMove as Colors))
-                                break;
-                            case SocketMethods.updateTakenFiguresState:
-                                /*
-                                  after JSON.parse() and JSON.stringfity() all methods of objects are erased,
-                                  so you need to regive it again
-                                */
-                                const takenFigureThisMove =  data.takenFigureThisMove as {name : FigureNames,color:Colors,id:string}
-                                const figureInstance = createFigureByProperties(takenFigureThisMove.name,takenFigureThisMove.color)
-                                if (figureInstance) {
-                                    if (figureInstance.color === Colors.BLACK) {
-                                        dispatch(addBlackTakenFigure(figureInstance))
-                                    } else {
-                                        dispatch(addWhiteTakenFigure(figureInstance))
+                            case SocketMethods.updateGameState:
+                                if (data?.gameData) {
+                                    // enemy user made move,recive new data and give to client
+                                    const gameData = data.gameData as {gameActive : boolean
+                                        ,updatedBoardCells : Cell[][]
+                                        ,blackTakenFigures : Figure[]
+                                        ,whiteTakenFigures : Figure[]
+                                        ,clientTime : number
+                                        ,enemyClientTime : number
+                                        ,currentMove : Colors}
+                                        if (gameData) {
+                                            // regive class methods for Cell's instances again
+                                            dispatch(updateCellsInExistingBoard(parseCells(gameData.updatedBoardCells as Cell[][])))
+                                            // regive class methods for Figure's instances again
+                                            gameData.blackTakenFigures = parseFigures(gameData.blackTakenFigures)
+                                            gameData.whiteTakenFigures = parseFigures(gameData.whiteTakenFigures)
+                                            dispatch(updateGameDataAftetMove({
+                                                currentMove : gameData.currentMove,
+                                                clientTime : gameData.clientTime,
+                                                enemyClientTime : gameData.enemyClientTime,
+                                                whiteTakenFigures : gameData.whiteTakenFigures,
+                                                blackTakenFigures : gameData.blackTakenFigures,
+                                            }))
                                     }
                                 }
                                 break;
-                            default:
-                                break
+                            case SocketMethods.endGame:
+                                const colorWinner = data.winnerColor as Colors | null
+                                dispatch(showGameStauts())
+                                dispatch(endGame(colorWinner))
+                                break;
                         }
                     }
                     newWebSocket.onclose = (event : CloseEvent) => {
@@ -117,9 +172,15 @@ export const useWebSocket = ()  : void => {
                 } 
             } catch (e) {
                 console.error('Connection to WSS failed')
+                if (ws) {
+                    ws.close()
+                }
                 dispatch(resetSocket())
             }
         } else {
+            if (ws) {
+                ws.close()
+            }
             dispatch(resetSocket())
         }
         

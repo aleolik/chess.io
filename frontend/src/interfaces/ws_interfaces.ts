@@ -1,6 +1,6 @@
-import { Cell } from "../chess-logic/models/Cell";
+import { Board } from "../chess-logic/models/Board";
 import { Colors } from "../chess-logic/models/Colors";
-import { Figure, FigureNames } from "../chess-logic/models/Figure";
+import { Figure, } from "../chess-logic/models/Figure";
 import { ITimer } from "../components/ChessComponents/MultiPlayerBoardComponent/MultiPlayerBoardComponent";
 import { IUser } from "./IUser";
 
@@ -15,12 +15,11 @@ export interface IGameData{
     clientTimer : ITimer
     enemyClientTimer : ITimer
     winner : Colors | null
+    board : null | Board
+    whiteTakenFigures : Figure[],
+    blackTakenFigures : Figure[],
 }
 
-export interface IGameDataBackend extends IGameData {
-    boardCells : Cell[][]
-    takenFigures : Array<{id : string,color:Colors,name : FigureNames}>
-}
 export interface IWebSocketState{
     ws : WebSocket | null,
     id : string | null,
@@ -48,8 +47,9 @@ export enum SocketMethods {
     // close webSocket
     closeWebsocket = "closeWebsocket",
     // updates board state
-    updateBoardState = "updateBoardState",
+    updateGameState = "updateGameState",
     // updates taken figures array
     updateTakenFiguresState = "updateTakenFiguresState",
-    endGame="endGame"
+    endGame="endGame",
+    updateTimeState="updateTimeState"
 }

@@ -23,10 +23,9 @@ export enum SocketMethods {
     // close webSocket
     closeWebsocket = "closeWebsocket",
     // update board state
-    updateBoardState = "updateBoardState",
-    // updates taken figures state
-    updateTakenFiguresState = "updateTakenFiguresState",
-    endGame="endGame"
+    updateGameState = "updateGameState",
+    endGame="endGame",
+    updateTimeState="updateTimeState",
 }
 export interface IMsg {
     method : string
@@ -45,9 +44,10 @@ export interface IGameData{
     currentMove : Colors
     boardCells : Cell[][]
     takenFigures : Array<{id:string,color:Colors,name:FigureNames}>
-    clientTimer : ITimer
-    enemyClientTimer : ITimer
+    clientTime : number
+    enemyClientTime : number
     winner : null | Colors
+
 }
 
 

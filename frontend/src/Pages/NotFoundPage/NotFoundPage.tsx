@@ -9,7 +9,7 @@ const NotFoundPage = () => {
     <div className={scss.container}>
         <h6 className={scss.text}>404</h6>
         <h6 className={scss.text}>(something went wrong...)</h6>
-        <button className={scss.btn} onClick={() => navigte('/')}>Return</button>
+        <button className={scss.btn} onClick={() => navigte('/')}>Go Home</button>
     </div>
   )
 }

@@ -7,24 +7,26 @@ import { Rook } from "../chess-logic/figures/Rook";
 import { Colors } from "../chess-logic/models/Colors";
 import { Figure, FigureNames } from "../chess-logic/models/Figure";
 
-export const createFigureByProperties = (figureName : string,figureColor:Colors) : Figure | null => {
-    if (figureName === FigureNames.ROOK){
-        return new Rook(figureColor)
+export const createFigureByProperties = (figure : Figure) : Figure | null => {
+    if (figure.name === FigureNames.ROOK){
+        return new Rook(figure.color)
     }
-    if (figureName === FigureNames.PAWN){
-        return new Pawn(figureColor)
+    if (figure.name === FigureNames.PAWN){
+        const pawn = figure as Pawn
+        return new Pawn(figure.color,pawn.isFirstTurn)
     }
-    if (figureName === FigureNames.HORSE){
-        return new Horse(figureColor)
+    if (figure.name === FigureNames.HORSE){
+        return new Horse(figure.color)
     }
-    if (figureName === FigureNames.BISHOP){
-        return new Bishop(figureColor)
+    if (figure.name === FigureNames.BISHOP){
+        return new Bishop(figure.color)
     }
-    if (figureName === FigureNames.KING){
-        return new King(figureColor)
+    if (figure.name === FigureNames.KING){
+        const king = figure as King
+        return new King(figure.color,king.isFirstSwap)
     }
-    if (figureName === FigureNames.QUEEN){
-        return new Queen(figureColor)
+    if (figure.name === FigureNames.QUEEN){
+        return new Queen(figure.color)
     }
 
     return null

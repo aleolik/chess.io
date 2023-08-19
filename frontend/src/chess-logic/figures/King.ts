@@ -7,11 +7,12 @@ import whiteKing from '../chess-assets/whiteKing.png'
 import blackKing from '../chess-assets/blackKing.png'
 
 export class King extends Figure{
-    isFirstTurn : boolean = true
-    constructor(color:Colors){
+    isFirstSwap : boolean = true
+    constructor(color:Colors,isFirstSwap : boolean = true){
         super(color)
         this.name = FigureNames.KING
         this.img = color === Colors.WHITE ? whiteKing : blackKing
+        this.isFirstSwap = isFirstSwap
     }
 
     isEmptyVertical(fromCell:Cell,targetCell:Cell) : boolean{
@@ -33,7 +34,7 @@ export class King extends Figure{
     }
     
     canSwapWithRook(fromCell:Cell,target:Cell,board:Board) : boolean{
-        if (!this.isFirstTurn) return false
+        if (!this.isFirstSwap) return false
 
         // king is not under attack
         const cellWhereIsKing  = board.getKingCell(this.color)
@@ -143,7 +144,7 @@ export class King extends Figure{
         if (this.isEmptyDiagonal(fromCell,targetCell))  return  true
 
         // RULE : You can swap with your's rook if every statement are true
-        if ((this.name === FigureNames.KING && targetCell.figure && targetCell.figure.name === FigureNames.ROOK) && this.isFirstTurn && (targetCell.figure.color === this.color)) {
+        if ((this.name === FigureNames.KING && targetCell.figure && targetCell.figure.name === FigureNames.ROOK) && this.isFirstSwap && (targetCell.figure.color === this.color)) {
             if (this.canSwapWithRook(fromCell,targetCell,board)) {
                 // find cell,after the swap with rook,that king will be moved in
                 return true
@@ -156,7 +157,7 @@ export class King extends Figure{
     }
 
     moveFigure(fromCell:Cell,targetCell:Cell,board:Board,doSwap : boolean = false): void {
-        if (this.isFirstTurn && doSwap) {
+        if (this.isFirstSwap && doSwap) {
             const rook = targetCell.figure as Rook
             if (rook.color !== this.color) return;
             
@@ -195,7 +196,7 @@ export class King extends Figure{
         } else {
             super.moveFigure(fromCell,targetCell,board)
         }
-        this.isFirstTurn = false
+        this.isFirstSwap = false
     }
 
 }

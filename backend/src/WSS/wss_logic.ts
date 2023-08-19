@@ -8,7 +8,7 @@ export const connectionHandler = (ws : ICustomWebSocket,msg:IMsg,aWSS:ICustomWeb
     const user = msg.user as IUser
     ws.user = user
     ws.id = user.id.toString()
-    if (aWSS.activeGames[ws.id]) {
+    if (aWSS.activeGames[ws.id] && aWSS.activeGames[ws.id].gameActive) {
         const clientGameData = aWSS.activeGames[ws.id] as IGameData
         changeWebSocketData(ws,aWSS,clientGameData)
         ws.send(JSON.stringify({
@@ -45,6 +45,7 @@ export const findSessionForClient = (aWSS : ICustomWebSocketServer,ws:ICustomWeb
                 const wsColor = randomNumber === 0 ? Colors.WHITE : Colors.BLACK
                 const clientColor = randomNumber === 0 ? Colors.BLACK : Colors.WHITE
                 const lobbyId = Date.now().toString(16)
+                const defaultTime = 30
 
                 const newBoard = new Board()
                 newBoard.initCells()
@@ -62,14 +63,8 @@ export const findSessionForClient = (aWSS : ICustomWebSocketServer,ws:ICustomWeb
                     boardCells : newBoard.cells,
                     userColor : clientColor,
                     takenFigures : [],
-                    clientTimer:{
-                        time : 30,
-                        intervalId : null,
-                    },
-                    enemyClientTimer:{
-                        time : 30,
-                        intervalId : null,
-                    },
+                    clientTime:defaultTime,
+                    enemyClientTime:defaultTime,
                     winner : null
                 }
                 ws.inQueue = false
@@ -84,14 +79,8 @@ export const findSessionForClient = (aWSS : ICustomWebSocketServer,ws:ICustomWeb
                     boardCells : newBoard.cells,
                     userColor : wsColor,
                     takenFigures : [],
-                    clientTimer:{
-                        time : 30,
-                        intervalId : null,
-                    },
-                    enemyClientTimer:{
-                        time : 30,
-                        intervalId : null,
-                    },
+                    clientTime:defaultTime,
+                    enemyClientTime:defaultTime,
                     winner : null
                 }
 

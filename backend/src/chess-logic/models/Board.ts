@@ -46,31 +46,7 @@ export class Board {
             this.cells.push(row);
         }
     }
-
-    public getCellsPropertiesWithoutImg() : any{
-        const arr = []
-        for (let i = 0;i<this.cells.length;i++){
-            const newArr = []
-            for (let j = 0;j<this.cells.length;j++){
-                const currentCell = this.getCell(i,j)
-                newArr.push({
-                    i : currentCell.i,
-                    j : currentCell.j,
-                    figure : currentCell.figure ? {
-                        name : currentCell.figure.name,
-                        color : currentCell.figure.color,
-                        id : currentCell.figure.id
-                    } : null,
-                    color : currentCell.color,
-                    id : currentCell.id,
-                    available : currentCell.available
-                })
-            }
-            arr.push(newArr)
-        }
-        return arr
-    }
-
+    
     /* 
         !!! call only in deepCopied instance !!!
         CHECK on deepCopiedBoard if king will be under the attack if you make this turn.

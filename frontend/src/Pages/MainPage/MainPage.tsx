@@ -46,13 +46,16 @@ const MainPage = () => {
                                 <Loader/>
                             </div>
                         )}
-                        {gameData?.gameActive && (
+                        {gameData?.gameActive  && ws && (
                             <>
                                 <h4>You are currently in game</h4>
                                 <button onClick={() => navigate(`/multi-player/${gameData.lobbyId}`)} className={scss.buttonPlay}>Back</button>
                             </>
                         )}
                         <button onClick={() => navigate('/single-player')} disabled={gameData?.gameActive || inQueue} className={scss.containerButton}>Play on 1 device</button>
+                        {(!user || !ws) && (
+                            <h1 className={scss.text}>You need to login to play multiplayer</h1>
+                        )}
                         <button disabled={!ws || !user || inQueue || gameData?.gameActive} onClick={startQueue} className={scss.containerButton}>Play Multiplayer</button>
                     </div>
                 </div>

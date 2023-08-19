@@ -11,7 +11,7 @@ const generateToken = (id : number,email : string,username : string) => {
     }
 
     const settings = {
-        expiresIn:'1h'
+        expiresIn:'24h'
     }
     
     const token = jwt.sign(

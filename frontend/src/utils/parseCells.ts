@@ -13,7 +13,7 @@ export const parseCells = (cells : Cell[][]) : Cell[][] => {
             let figure : Figure | null = null
             const currentCell = cells[i][j]
             if (currentCell.figure){
-                figure = createFigureByProperties(currentCell.figure.name,currentCell.figure.color)
+                figure = createFigureByProperties(currentCell.figure)
             }
             cells[i][j] = new Cell(currentCell.i,currentCell.j,currentCell.color,figure)
 

@@ -2,13 +2,11 @@ import {combineReducers,configureStore} from '@reduxjs/toolkit'
 import { userSlice } from '../reducers/userReducer'
 import { modalSlice } from '../reducers/modalReducer'
 import {webSocketSlice} from '../reducers/webSocketReducer'
-import { boardSlice } from '../reducers/boardRedurcer'
 
 const RootRedcuer = combineReducers({
     user : userSlice.reducer,
     modal : modalSlice.reducer,
-    webSocket : webSocketSlice.reducer,
-    board : boardSlice.reducer,
+    webSocket : webSocketSlice.reducer
 })
 
 const SetupStore = () => {

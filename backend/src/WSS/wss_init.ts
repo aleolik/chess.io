@@ -3,8 +3,8 @@ import {Application}from 'express'
 import { WebSocket  } from 'ws'
 import { IMsg, SocketMethods,ICustomWebSocket, ICustomWebSocketServer } from './wss_interfaces'
 import {connectionHandler,setClientQueueStatusToActive,setClientQueueStatusToUnactive,findSessionForClient,closeWebSocketAction} from './wss_logic'
-import { endGame, makeMove } from './wss_game_logic'
-// import { makeMove } from './wss_game_logic'
+import { endGame, makeMove, updateTimeStateForGameInServer } from './wss_game_logic'
+
 
 
 const initalizeWebSocketServer = (app:Application) => {
@@ -33,6 +33,8 @@ const initalizeWebSocketServer = (app:Application) => {
                     break;
                 case SocketMethods.endGame:
                     endGame(ws as ICustomWebSocket,aWSS,parsedMessage)
+                case SocketMethods.updateTimeState:
+                    updateTimeStateForGameInServer(ws as ICustomWebSocket,parsedMessage,aWSS as ICustomWebSocketServer)
                 default:
                     break;
             }

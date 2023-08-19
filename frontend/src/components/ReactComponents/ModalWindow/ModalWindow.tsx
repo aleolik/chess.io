@@ -18,10 +18,11 @@ interface GameStatusWindowProps{
   isWinner : Colors | null
 }
 export const GameStatusWindow : FC<GameStatusWindowProps> = ({isWinner}) => {
+  const gameData = useAppSelector(state => state.webSocket.gameData)
   return (
       <div className={scss.gameStatusContainer}>
           {isWinner ? (
-            <div>{isWinner.charAt(0).toUpperCase()+isWinner.slice(1)} player won!</div>
+            <div>{isWinner.charAt(0).toUpperCase()+isWinner.slice(1)} player won by {gameData?.clientTimer?.time === 0 || gameData?.enemyClientTimer?.time === 0 ? "time" : "mate"}!</div>
           )
           : (<div>It's a tie!</div>)}
           <img className={scss.wonImage} src={isWinner ? isWinner === Colors.BLACK ? blackWonImg : whiteWonImg : tieImg} alt='wonIcon'/>
