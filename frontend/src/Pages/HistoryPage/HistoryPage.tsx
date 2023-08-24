@@ -1,7 +1,7 @@
 import React from 'react'
-import scss from './NewsPage.module.scss'
+import scss from './HistoryPage.module.scss'
 
-const NewsPage = () => {
+const HistoryPage = () => {
   return (
     <div className={scss.container}>
         <h6 className={scss.text}>Coming out</h6>
@@ -10,4 +10,4 @@ const NewsPage = () => {
   )
 }
 
-export default NewsPage
+export default HistoryPage

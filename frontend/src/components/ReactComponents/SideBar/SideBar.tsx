@@ -21,7 +21,7 @@ const navigationLinks : ICustomLink[] = [
     },
     {
         text : "News",
-        to : "/news"
+        to : "/user-history"
     },
 ]
 

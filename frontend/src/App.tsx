@@ -17,7 +17,7 @@ import userInstance from './axios/userInstance';
 import { useWebSocket } from './hooks/useWebSocket';
 import NotFoundPage from './Pages/NotFoundPage/NotFoundPage';
 import AuthPage from './Pages/AuthPage/AuthPage';
-import NewsPage from './Pages/NewsPage/NewsPage';
+import HistoryPage from './Pages/HistoryPage/HistoryPage';
 
 function App() {
   const {showModal,showWindow} = useAppSelector(state => state.modal)
@@ -57,7 +57,7 @@ function App() {
                  <MultiPlayerBoard/>
               </AuthPage>
             } path='/multi-player/:id'></Route>
-            <Route path='/news' element={<NewsPage/>}></Route>
+            <Route path='/user-history' element={<HistoryPage/>}></Route>
             <Route path="*" element={<NotFoundPage/>} />
           </Route>
         </Routes>

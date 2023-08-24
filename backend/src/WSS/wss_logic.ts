@@ -3,19 +3,10 @@ import { IUser, IUserFromClient } from "../interfaces"
 import { Colors, IMsg, ICustomWebSocket, ICustomWebSocketServer, IGameDataBackend } from "./wss_interfaces"
 import { SocketMethods } from "./wss_interfaces"
 import { Board } from "../chess-logic/models/Board"
-import { endGameByTime,findGameDataByUserId,findWebSocketStoredInAWSS} from "./wss_game_logic"
-import { v4 } from "uuid"
+import { endGameByTime,findGameDataByUserId,findWebSocketById} from "./wss_game_logic"
 
-export const findWebSocketById = (aWSS : ICustomWebSocketServer,id : String) : ICustomWebSocket | null => {
-    for (const client of aWSS.clients) {
-        const clientModified = client as ICustomWebSocket
-        const clientId = clientModified?.id
-        if (clientId && clientId === id) {
-          return clientModified
-        }
-      }
-    return null;
-}
+
+
 // transforms data and sends it to frontend
 export const transformDataAsFrontendType = (wsData : IGameDataBackend,enemyWsData : IGameDataBackend)  => {
 
@@ -39,16 +30,15 @@ export const transformDataAsFrontendType = (wsData : IGameDataBackend,enemyWsDat
 export const connectionHandler = (ws : ICustomWebSocket,msg:IMsg,aWSS:ICustomWebSocketServer) => {
     const user = msg.user as IUserFromClient
     const userId = user?.id.toString() // user id
-    const wsId = v4() // unique id 
     ws.user = {
         ...user,
         id : userId
     }
-    ws.id = userId + "(wsId)"
-    const wsFromAwssClients = findWebSocketById(aWSS,userId)
+    ws.id = userId + process.env.SOCKET_KEY
+    const wsFromAwssClients = findWebSocketById(aWSS,ws.id)
     if (wsFromAwssClients) {
         ws.inQueue = wsFromAwssClients.inQueue
-        const wsData = findGameDataByUserId(aWSS,userId)
+        const wsData = findGameDataByUserId(aWSS,ws.user.id)
         if (wsData) {
             const enemyWsData = findGameDataByUserId(aWSS,wsData.enemyUser.user.id)
             if (enemyWsData) {
@@ -89,16 +79,16 @@ export const setClientQueueStatusToUnactive = (ws : ICustomWebSocket) => {
     }))
 }
 
-export const setTimerForWs = (wsId : string,enemyWsId : string,aWSS : ICustomWebSocketServer) => {
+export const setTimerForWs = (wsId : string,userId : string,enemyWsId : string,enemyUserId : string,aWSS : ICustomWebSocketServer) => {
     const intervalId = setInterval(() => {
-        if (aWSS.activeGames[wsId] && aWSS.activeGames[wsId].clientTimer.time > 0) {
-            aWSS.activeGames[wsId].clientTimer.time -= 1
+        if (aWSS.activeGames[userId] && aWSS.activeGames[userId].clientTimer.time > 0) {
+            aWSS.activeGames[userId].clientTimer.time -= 1
         } else {
-            endGameByTime(wsId,enemyWsId,aWSS)
+            endGameByTime(wsId,userId,enemyWsId,enemyUserId,aWSS)
         }
     },1000)
 
-    aWSS.activeGames[wsId].clientTimer.intervalId = intervalId
+    aWSS.activeGames[userId].clientTimer.intervalId = intervalId
 
 }
 
@@ -178,9 +168,9 @@ export const findSessionForClient = (aWSS : ICustomWebSocketServer,ws:ICustomWeb
 
                 // start timer for white
                 if (clientColor === Colors.WHITE) {
-                    setTimerForWs(client.user.id,ws.user.id,aWSS)
+                    setTimerForWs(client.id,client.user.id,ws.id,ws.user.id,aWSS)
                 } else if (wsColor === Colors.WHITE) {
-                    setTimerForWs(ws.user.id,client.user.id,aWSS)
+                    setTimerForWs(ws.id,ws.user.id,client.id,client.user.id,aWSS)
                 }
             }
         }
