@@ -14,14 +14,20 @@ interface BlockedPageProps{
     needRoleToHave : roles
 }
 const BlockedPage : React.FC<BlockedPageProps> = ({needRoleToHave}) : React.ReactElement => {
-    return <div className={scss.container}>You need to have role "{needRoleToHave}" to access this page!</div>
+    return <div className={scss.container}>
+        <div className={scss.text}>You need to login as "{needRoleToHave.toLowerCase()}" to access the page</div>
+    </div>
 }
 const AuthPage : React.FC<AuthPageProps> = ({ children }) : React.ReactElement => {
     const user = useAppSelector(state => state.user)
-    const gameData = useAppSelector(state => state.webSocket.gameData)
+    const {ws} = useAppSelector(state => state.webSocket)
 
-    if (user && gameData && gameData.gameActive) {
-        return <div></div>
+    if (user && ws) {
+        return (
+            <div>
+                {children}
+            </div>
+        )
     } else {
         return <BlockedPage needRoleToHave={roles.USER}/>
     }

@@ -3,9 +3,9 @@ import { AVAILABLE_ROLES } from "./models/User";
 import { Request } from "express";
 export interface IUser{
     email : string;
-    id : number;
+    id : string;
     username : string;
-    roles : Array<AVAILABLE_ROLES>
+    roles? : Array<AVAILABLE_ROLES>
 }
 
 // whenever you call async function in ANY of controllers,it returns an instance of ICustomResponse

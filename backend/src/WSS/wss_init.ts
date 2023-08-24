@@ -3,7 +3,7 @@ import {Application}from 'express'
 import { WebSocket  } from 'ws'
 import { IMsg, SocketMethods,ICustomWebSocket, ICustomWebSocketServer } from './wss_interfaces'
 import {connectionHandler,setClientQueueStatusToActive,setClientQueueStatusToUnactive,findSessionForClient,closeWebSocketAction} from './wss_logic'
-import { endGame, makeMove, updateTimeStateForGameInServer } from './wss_game_logic'
+import { endGameByMate, makeMove, updateTimeStateForClient } from './wss_game_logic'
 
 
 
@@ -21,7 +21,7 @@ const initalizeWebSocketServer = (app:Application) => {
                     break;
                 case SocketMethods.startQueue:
                     // user started a query,give user active status
-                    setClientQueueStatusToActive(ws as ICustomWebSocket)
+                    setClientQueueStatusToActive(ws as ICustomWebSocket,aWSS)
                     findSessionForClient(aWSS,ws as ICustomWebSocket)
                     break;
                 case SocketMethods.endQueue:
@@ -32,9 +32,9 @@ const initalizeWebSocketServer = (app:Application) => {
                     makeMove(ws as ICustomWebSocket,parsedMessage,aWSS)
                     break;
                 case SocketMethods.endGame:
-                    endGame(ws as ICustomWebSocket,aWSS,parsedMessage)
+                    endGameByMate(ws as ICustomWebSocket,aWSS,parsedMessage)
                 case SocketMethods.updateTimeState:
-                    updateTimeStateForGameInServer(ws as ICustomWebSocket,parsedMessage,aWSS as ICustomWebSocketServer)
+                    updateTimeStateForClient(ws as ICustomWebSocket,aWSS as ICustomWebSocketServer)
                 default:
                     break;
             }

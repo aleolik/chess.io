@@ -24,6 +24,7 @@ const RegisterForm = () => {
   const [email,setEmail] = useState<string>('')
   const [password,setPassword] = useState<string>('')
   const [username,setUsername] = useState<string>('')
+  const [passwordOnRepeat,setPasswordOnRepeat] = useState('')
 
   const [emailError,setEmailError] = useState<string>('')
   const [usernameError,setUsernameError] = useState<string>('')
@@ -80,7 +81,8 @@ const RegisterForm = () => {
 
   const repeatedPasswordOnChange = (event : ChangeEvent<HTMLInputElement>) => {
     const msg = "Passwords should be matched"
-    if (event.target.value !== password){
+    setPasswordOnRepeat(event.target.value)
+    if (password !== event.target.value){
       setPasswordError(msg)
     } else {
       if (passwordError && passwordError === msg) {
@@ -93,7 +95,7 @@ const RegisterForm = () => {
   const passwordOnChange = (event : ChangeEvent<HTMLInputElement>) => {
     setPassword(event.target.value)
     if (event.target.value) {
-      const isErrorInPassword = errorInPassword(event.target.value)
+      const isErrorInPassword = errorInPassword(event.target.value,passwordOnRepeat)
       if (isErrorInPassword){
         setPasswordError(isErrorInPassword)
       } else {
@@ -121,6 +123,7 @@ const RegisterForm = () => {
         passwordRepeatedInputRef.current.value = generatedPassword
         // set state
         setPassword(generatedPassword)
+        setPasswordOnRepeat(generatedPassword)
         setCanGenerateRandomPassword(false)
         if (passwordError) {
           setPasswordError("")
@@ -146,7 +149,7 @@ const RegisterForm = () => {
         event.preventDefault()
 
         const emailErr = errorInEmail(email)
-        const passwordErr = errorInPassword(password)
+        const passwordErr = errorInPassword(password,passwordOnRepeat)
         const usernameErr = errorInUsername(username)
 
         if (emailErr || passwordErr || usernameErr) {
@@ -165,7 +168,6 @@ const RegisterForm = () => {
             } else {
               setPasswordError('')
             }
-
             return;
         }
         await dispatch(RegisterUserAction(username,email,password))

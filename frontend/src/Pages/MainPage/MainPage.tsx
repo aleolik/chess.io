@@ -17,6 +17,7 @@ const MainPage = () => {
 
   const startQueue = (event : React.MouseEvent<HTMLButtonElement>) => {
     if (ws && user) {
+        console.log("socket starting queue")
         ws.send(JSON.stringify({
             method : SocketMethods.startQueue,
             id : user.id,
@@ -46,6 +47,9 @@ const MainPage = () => {
                                 <Loader/>
                             </div>
                         )}
+                         {user && (
+                            <h1 className={scss.text}>Logined as {user.email}</h1>
+                        )}
                         {gameData?.gameActive  && ws && (
                             <>
                                 <h4>You are currently in game</h4>
@@ -53,8 +57,11 @@ const MainPage = () => {
                             </>
                         )}
                         <button onClick={() => navigate('/single-player')} disabled={gameData?.gameActive || inQueue} className={scss.containerButton}>Play on 1 device</button>
-                        {(!user || !ws) && (
+                        {!user && (
                             <h1 className={scss.text}>You need to login to play multiplayer</h1>
+                        )}
+                        {user && !ws && (
+                             <h1 className={scss.text}>Connection to webSocket closed,refresh the page,please</h1>
                         )}
                         <button disabled={!ws || !user || inQueue || gameData?.gameActive} onClick={startQueue} className={scss.containerButton}>Play Multiplayer</button>
                     </div>

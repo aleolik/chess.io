@@ -24,13 +24,13 @@ function App() {
   const userLoad = userSlice.actions.userLoad
   const dispatch = useAppDispatch()
   useEffect(() => {
-      userInstance.get("/user/auth").then((res) => {
-        const token = res.data.token 
-        const user = jwtDecode(token) as IUser
-        dispatch(userLoad(user))
-      }).catch((err) => {
-        console.error("Failed to login user!")
-      })
+    userInstance.get("/user/auth").then((res) => {
+      const token = res.data.token 
+      const user = jwtDecode(token) as IUser
+      dispatch(userLoad(user))
+    }).catch((err) => {
+      console.error("Failed to login user!")
+    })
   },[])
   useWebSocket()
 
@@ -47,11 +47,15 @@ function App() {
         <Routes>
           <Route path='/' element={<Layout/>}>
             <Route element={<MainPage/>} path='/'></Route>
-            <Route element={<SinglePlayerBoardPage/>} path='/single-player'></Route>
             <Route element={
-              // <AuthPage>
+            <AuthPage>
+              <SinglePlayerBoardPage/>
+            </AuthPage>
+            } path='/single-player'></Route>
+            <Route element={
+              <AuthPage>
                  <MultiPlayerBoard/>
-              // </AuthPage>
+              </AuthPage>
             } path='/multi-player/:id'></Route>
             <Route path='/news' element={<NewsPage/>}></Route>
             <Route path="*" element={<NotFoundPage/>} />

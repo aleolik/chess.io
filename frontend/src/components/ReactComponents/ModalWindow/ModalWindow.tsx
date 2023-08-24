@@ -10,7 +10,7 @@ import blackWonImg from '../../../assets/media/blackWon.png'
 import tieImg from '../../../assets/media/chessTie.png'
 
 interface ModalWndowProps{
-    children : any
+    children : React.ReactElement
 }
 
 
@@ -22,7 +22,7 @@ export const GameStatusWindow : FC<GameStatusWindowProps> = ({isWinner}) => {
   return (
       <div className={scss.gameStatusContainer}>
           {isWinner ? (
-            <div>{isWinner.charAt(0).toUpperCase()+isWinner.slice(1)} player won by {gameData?.clientTimer?.time === 0 || gameData?.enemyClientTimer?.time === 0 ? "time" : "mate"}!</div>
+            <div>{isWinner.charAt(0).toUpperCase()+isWinner.slice(1)} player won by {gameData && gameData.clientTime === 0 || gameData?.enemyClientTime === 0 ? "time" : "mate"}!</div>
           )
           : (<div>It's a tie!</div>)}
           <img className={scss.wonImage} src={isWinner ? isWinner === Colors.BLACK ? blackWonImg : whiteWonImg : tieImg} alt='wonIcon'/>

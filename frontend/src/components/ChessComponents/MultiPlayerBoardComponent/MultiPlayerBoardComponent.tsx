@@ -19,12 +19,7 @@ import TimeTransformation from '../../ReactComponents/TimeTransformation/TimeTra
 import { Board } from '../../../chess-logic/models/Board'
 import { webSocketSlice } from '../../../redux/reducers/webSocketReducer'
 import { createFigureByProperties } from '../../../utils/createFigureByProperties'
-import {DeactivateTimersAsync,ActivateTimerAsync,ChangeTimerAsync} from '../../../redux/AsyncActions/TimerOperationsAsync'
 
-export interface ITimer{
-  time : number,
-  intervalId : ReturnType<typeof setInterval> | null
-}
 
 const MultiPlayerBoardComponent = () => {
   const {ws,gameData} = useAppSelector(state => state.webSocket)
@@ -36,30 +31,8 @@ const MultiPlayerBoardComponent = () => {
   const showGameStatus = modalSlice.actions.showGameStatus
   const {showModal,showWindow} = useAppSelector(state => state.modal)
   const user = useAppSelector(state => state.user.user)
-  const isMountedRef = useRef(false)
+  const intervalId = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Change active timer to other's,clean intervals
-  const handleTimers = async(operation : "CHANGE" | "DEACTIVATE" | "INIT") => {
-    console.log("current operation",operation)
-    console.log("current state",gameData)
-    if (gameData) {
-      if (operation === "CHANGE") {
-        if (gameData.clientTimer.intervalId) {
-          await dispatch(ChangeTimerAsync())
-        } else {
-          if (gameData.enemyClientTimer.intervalId) {
-            await dispatch(ChangeTimerAsync())
-          }
-        }
-      }
-      if (operation === "DEACTIVATE") {
-       await dispatch(DeactivateTimersAsync())
-      }
-      if (operation === "INIT"){
-        await dispatch(ActivateTimerAsync(gameData.currentMove))
-      }
-    }
-  }
 
   const updateBoardAction = () => {
     if (gameData && gameData.board) {
@@ -81,22 +54,16 @@ const MultiPlayerBoardComponent = () => {
   const checkForGameStatus = () => {
     if (gameData && gameData.gameActive && gameData.board) {
       if (ws && deepCopiedBoard.cells.length && deepCopiedBoard.isMate(gameData.currentMove)) {
-        dispatch(showGameStatus())
         setSelectedCell(null)
-        dispatch(endGame(gameData.currentMove === Colors.WHITE ? Colors.BLACK : Colors.WHITE))
         ws.send(JSON.stringify({
           "method":SocketMethods.endGame,
-          "lobbyId":gameData.lobbyId,
           "winnerColor":gameData.userColor,
         }))
       } else {
         if (ws && gameData && gameData.gameActive && deepCopiedBoard.cells.length && deepCopiedBoard.isTie(gameData.currentMove)){
-          dispatch(showGameStatus())
-          dispatch(endGame(null))
           ws.send(JSON.stringify({
             "method":SocketMethods.endGame,
-            "lobbyId":gameData.lobbyId,
-            "winnerColor":gameData.userColor,
+            "winnerColor":null,
           }))
           setSelectedCell(null)
         }
@@ -139,12 +106,7 @@ const MultiPlayerBoardComponent = () => {
               ws.send(JSON.stringify({
                 "method" : SocketMethods.makeMove,
                 "updatedBoardCells" : gameData.board.cells,
-                "wasMove" : gameData.currentMove,
-                "lobbyId" : gameData.lobbyId,
-                "clientTime":gameData.clientTimer.time,
-                "enemyClientTime":gameData.enemyClientTimer.time,
-                "whiteTakenFigures":takenFigureThisMove && takenFigureThisMove.color === Colors.WHITE ? [...gameData.whiteTakenFigures,takenFigureThisMove] : gameData.whiteTakenFigures,
-                "blackTakenFigures":takenFigureThisMove && takenFigureThisMove.color === Colors.BLACK ? [...gameData.blackTakenFigures,takenFigureThisMove] : gameData.blackTakenFigures,
+                "takenFigure":takenFigureThisMove,
               }))
               dispatch(changeCurrentMove(gameData.currentMove === Colors.BLACK ? Colors.WHITE : Colors.BLACK))
               setSelectedCell(null)
@@ -167,70 +129,40 @@ const MultiPlayerBoardComponent = () => {
       }
     },[selectedCell])
 
-    useEffect(() => {
-      if (gameData && gameData.board) {
-        if (gameData.clientTimer.intervalId === null && gameData.enemyClientTimer.intervalId === null && gameData.gameActive) {
-          handleTimers("INIT")
-        } 
-
-        return () => {
-          // clear data,when component umnmounts
-          handleTimers("DEACTIVATE")
-          if (gameData.gameActive === false) {
-            dispatch(clearGameData())
-          }
-        }
-      }
-    },[gameData?.gameActive])
-
-
-    useEffect(() => {
-      if (gameData && gameData.board) {
-          // make new deep copy board for finding available turns,if 0,then mate or tie
-        setDeepCopiedBoard(gameData.board)
-        checkForGameStatus()
-        handleTimers("CHANGE")
-      }
-    },[gameData?.currentMove])
 
 
   useEffect(() => {
-    // UseEffect,for checking game ending by time
-    if (gameData && ws) {
-      // update data in AWSS
-      // TODO : fix updateTimeState system
-      ws.send(JSON.stringify({
-        "method" : SocketMethods.updateTimeState,
-        "clientTime":gameData.clientTimer.time,
-        "enemyClientTime":gameData.enemyClientTimer.time
-      }))
-      if (gameData && gameData.clientTimer.time <= 0 && ws) {
-        handleTimers("DEACTIVATE").then(() => {
-          ws.send(JSON.stringify({
-            "method":SocketMethods.endGame,
-            "lobbyId":gameData.lobbyId,
-            "winnerColor" : gameData.userColor === Colors.BLACK ? Colors.WHITE : Colors.BLACK
-          }))
-          dispatch(endGame(gameData.userColor === Colors.BLACK ? Colors.WHITE : Colors.BLACK))
-          dispatch(showGameStatus())
-        })
-      }
-      if (gameData && gameData.enemyClientTimer.time <= 0 && ws) {
-        handleTimers("DEACTIVATE").then(() => {
-          ws.send(JSON.stringify({
-            "method":SocketMethods.endGame,
-            "lobbyId":gameData.lobbyId,
-            "winnerColor":gameData.userColor,
-          }))
-          dispatch(endGame(gameData.userColor))
-          dispatch(showGameStatus())
-        })
-      }
-
-
+    if (gameData && gameData.board) {
+      // make new deep copy board for finding available turns,if 0,then mate or tie
+      setDeepCopiedBoard(gameData.board)
+      checkForGameStatus()
     }
+  },[gameData?.currentMove])
 
-  },[gameData?.clientTimer.time,gameData?.enemyClientTimer.time])
+  useEffect(() => {
+    console.log(gameData)
+    console.log(intervalId.current,"current")
+    if (gameData && gameData.winner === null && intervalId.current === null) {
+      console.log("setting interval")
+      intervalId.current = setInterval(() => {
+        if (gameData && ws) {
+          console.log("interval works")
+          ws.send(JSON.stringify({
+            "method" : SocketMethods.updateTimeState,
+          }))
+        }
+      },1000)
+    }
+    return () => {
+      if (intervalId.current) {
+        clearInterval(intervalId.current)
+        intervalId.current = null
+      }
+    }
+  },[gameData?.winner])
+
+
+  
 
 
   return (
@@ -251,7 +183,7 @@ const MultiPlayerBoardComponent = () => {
               <ModalWindow children={<GameStatusWindow isWinner={gameData.winner}/>}/>
           )}
           {gameData && (
-            <TimeTransformation time={gameData.enemyClientTimer.time}/>
+            <TimeTransformation time={gameData.enemyClientTime}/>
           )}
           <div className={scss.board}>
             <>
@@ -299,7 +231,7 @@ const MultiPlayerBoardComponent = () => {
             </>
         </div>
         {gameData && (
-            <TimeTransformation time={gameData.clientTimer.time}/>
+            <TimeTransformation time={gameData.clientTime}/>
           )}
         {gameData?.userColor === Colors.BLACK && (
             <BarToDisplayTakenFigures color={Colors.WHITE} takenFigures={gameData.whiteTakenFigures}/>

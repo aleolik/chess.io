@@ -36,31 +36,31 @@ export interface ITimer{
     time : number,
     intervalId : ReturnType<typeof setInterval> | null
  }
-export interface IGameData{
+export interface IGameDataBackend{
     lobbyId : string,
     enemyUser : {user : IUser,color:Colors}
     gameActive : boolean
     userColor : Colors
     currentMove : Colors
-    boardCells : Cell[][]
-    takenFigures : Array<{id:string,color:Colors,name:FigureNames}>
-    clientTime : number
-    enemyClientTime : number
+    board : Board | null,
+    takenFigures : {
+        whiteTakenFigures : Array<{id:string,color:Colors,name:FigureNames}>,
+        blackTakenFigures : Array<{id:string,color:Colors,name:FigureNames}>,
+    }
+    clientTimer : ITimer;
     winner : null | Colors
-
 }
 
 
 
 export interface ICustomWebSocketServer extends WebSocketServer {
-    activeGames : { [key : string] : IGameData}
+    activeGames : { [key : string] : IGameDataBackend}
 }
 
 export interface ICustomWebSocket extends WebSocket {
     inQueue : boolean
     id : string
     user : IUser
-    gameData : IGameData
 }
 
 

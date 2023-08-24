@@ -33,7 +33,8 @@ const checkPasswordSymbols = (password : string) => {
     return checker.hasBigLetter && checker.hasSpecialSymbol && checker.hasNumber
 }
 
-export const errorInPassword = (password : string) : string => {
+
+export const errorInPassword = (password : string,passwordOnRepeat : string) : string => {
 
     if (typeof password !== 'string'){
         return 'Password must be string'
@@ -45,6 +46,10 @@ export const errorInPassword = (password : string) : string => {
     
     if (!checkPasswordSymbols(password)){
         return 'Password must include at least 1 number,1 special symbol and 1 uppercase letter.'
+    }
+
+    if (passwordOnRepeat !== password) {
+        return "Passwords should be matched"
     }
 
     return ''

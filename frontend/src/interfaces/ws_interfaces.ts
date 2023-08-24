@@ -1,7 +1,6 @@
 import { Board } from "../chess-logic/models/Board";
 import { Colors } from "../chess-logic/models/Colors";
 import { Figure, } from "../chess-logic/models/Figure";
-import { ITimer } from "../components/ChessComponents/MultiPlayerBoardComponent/MultiPlayerBoardComponent";
 import { IUser } from "./IUser";
 
 
@@ -12,8 +11,8 @@ export interface IGameData{
     userColor : Colors
     enemyUser : {user : IUser,color:Colors}
     currentMove : Colors
-    clientTimer : ITimer
-    enemyClientTimer : ITimer
+    clientTime : number,
+    enemyClientTime : number,
     winner : Colors | null
     board : null | Board
     whiteTakenFigures : Figure[],

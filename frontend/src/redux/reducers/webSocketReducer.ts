@@ -1,16 +1,13 @@
 import {createSlice,Draft,PayloadAction} from '@reduxjs/toolkit'
 import { IGameData, IWebSocketState } from '../../interfaces/ws_interfaces'
 import { IUser } from '../../interfaces/IUser'
-import { ITimer } from '../../components/ChessComponents/MultiPlayerBoardComponent/MultiPlayerBoardComponent'
 import { Colors } from '../../chess-logic/models/Colors'
 import { Cell } from '../../chess-logic/models/Cell'
 import { Board } from '../../chess-logic/models/Board'
 import { Figure } from '../../chess-logic/models/Figure'
 
 
-export interface ITimerWithType extends ITimer{
-    timerType : "client" | "enemyClient"
-}
+
 
 const defaultState : IWebSocketState = {
     id : null,
@@ -55,39 +52,6 @@ export const webSocketSlice = createSlice({
                 state.gameData.gameActive = false
                 // when tie or game isActive then winner === null,otherwise color of the winner
                 state.gameData.winner = action.payload
-            }
-        },
-        activateTimer(state:Draft<IWebSocketState>,action:PayloadAction<ITimerWithType>){
-            if (state.gameData && action.payload.intervalId === null) {
-                if (action.payload.timerType === 'client'){
-                    if (state.gameData.clientTimer.time > 0) {
-                        state.gameData.clientTimer.time -= 1
-                    }
-                } else {
-                    if (state.gameData.enemyClientTimer.time > 0) {
-                        state.gameData.enemyClientTimer.time -= 1
-                    }
-                }
-            }
-            // TODO : update timer for both users in AWSS
-        },
-        deactivateTimer(state:Draft<IWebSocketState>,action:PayloadAction<ITimerWithType>){
-            if (state.gameData && action.payload.intervalId) {
-                clearInterval(action.payload.intervalId)
-                if (action.payload.timerType === 'client'){
-                    state.gameData.clientTimer.intervalId = null
-                } else {
-                    state.gameData.enemyClientTimer.intervalId = null
-                }
-            }
-        },
-        setIntervalIdForTimer(state:Draft<IWebSocketState>,action:PayloadAction<{timerType : "client" | "enemyClient",intervalId : ReturnType<typeof setInterval> | null}>){
-            if (state.gameData) {
-                if (action.payload.timerType === 'client'){
-                    state.gameData.clientTimer.intervalId = action.payload.intervalId
-                } else {
-                    state.gameData.enemyClientTimer.intervalId = action.payload.intervalId
-                }
             }
         },
         setUser(state:Draft<IWebSocketState>,action:PayloadAction<IUser>){
@@ -140,13 +104,16 @@ export const webSocketSlice = createSlice({
                 state.gameData.board.cells = state.gameData.board.highlightCells(action.payload)
             }
          },
-         updateGameDataAftetMove(state:Draft<IWebSocketState>,action:PayloadAction<{currentMove:Colors,clientTime:number,enemyClientTime:number,blackTakenFigures:Figure[],whiteTakenFigures:Figure[]}>) {
-            if (state.gameData && state.gameData.gameActive) {
+         updateGameDataAftetMove(state:Draft<IWebSocketState>,action:PayloadAction<{currentMove:Colors,blackTakenFigures:Figure[],whiteTakenFigures:Figure[]}>) {
+            if (state.gameData && state.gameData.board) {
                 state.gameData.currentMove = action.payload.currentMove
-                state.gameData.clientTimer.time = action.payload.clientTime
-                state.gameData.enemyClientTimer.time = action.payload.enemyClientTime
                 state.gameData.whiteTakenFigures = action.payload.whiteTakenFigures
-                state.gameData.blackTakenFigures = action.payload.blackTakenFigures
+            }
+         },
+         updateTimeForClient(state:Draft<IWebSocketState>,action:PayloadAction<{wsTime:number,enemyWsTime:number}>){
+            if (state.gameData) {
+                state.gameData.clientTime = action.payload.wsTime
+                state.gameData.enemyClientTime = action.payload.enemyWsTime
             }
          }
     }
