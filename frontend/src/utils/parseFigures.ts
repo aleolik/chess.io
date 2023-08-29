@@ -11,6 +11,8 @@ export const parseFigures = (figures : Array<Figure>) : Array<Figure> => {
       }
     }
 
+    console.log("returning figures",figures)
+
     return figures
 }
 

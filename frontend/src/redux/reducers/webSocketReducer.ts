@@ -108,12 +108,13 @@ export const webSocketSlice = createSlice({
             if (state.gameData && state.gameData.board) {
                 state.gameData.currentMove = action.payload.currentMove
                 state.gameData.whiteTakenFigures = action.payload.whiteTakenFigures
+                state.gameData.blackTakenFigures = action.payload.blackTakenFigures
             }
          },
-         updateTimeForClient(state:Draft<IWebSocketState>,action:PayloadAction<{wsTime:number,enemyWsTime:number}>){
+         updateTimeForClient(state:Draft<IWebSocketState>,action:PayloadAction<{clientTime:number,enemyClientTime:number}>){
             if (state.gameData) {
-                state.gameData.clientTime = action.payload.wsTime
-                state.gameData.enemyClientTime = action.payload.enemyWsTime
+                state.gameData.clientTime = action.payload.clientTime
+                state.gameData.enemyClientTime = action.payload.enemyClientTime
             }
          }
     }

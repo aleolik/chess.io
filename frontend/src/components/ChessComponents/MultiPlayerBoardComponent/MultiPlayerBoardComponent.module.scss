@@ -12,6 +12,11 @@
     align-items: center;
     width: 100%;
 }
+.text{
+    font-size: min(25px,2vh);
+    color: white;
+    font-family: cursive;
+}
 
 
 @media (orientation : portrait) {

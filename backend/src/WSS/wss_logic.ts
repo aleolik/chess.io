@@ -101,7 +101,7 @@ export const findSessionForClient = (aWSS : ICustomWebSocketServer,ws:ICustomWeb
                 const wsColor = randomNumber === 0 ? Colors.WHITE : Colors.BLACK
                 const clientColor = randomNumber === 0 ? Colors.BLACK : Colors.WHITE
                 const lobbyId = Date.now().toString(16)
-                const defaultTime = 60 * 0.5
+                const defaultTime = process.env.FAST_DEFAULT_TIME === "Y"  ? 20 : 60 * 5
 
                 const newBoard = new Board()
                 newBoard.initCells()

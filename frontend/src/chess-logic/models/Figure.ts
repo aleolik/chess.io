@@ -20,10 +20,10 @@ export class Figure{
     name : FigureNames;
     img : typeof imgExample | null = null
 
-    constructor(color:Colors){
+    constructor(color:Colors,figureId : string){
         this.color = color
         this.name = FigureNames.DEFAULT
-        this.id = v4()
+        this.id = figureId
     }
     
     canMove(fromCell:Cell,targetCell:Cell,deepCopiedBoard:Board) : boolean{

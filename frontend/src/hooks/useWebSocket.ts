@@ -13,6 +13,11 @@ import { parseFigures } from '../utils/parseFigures'
 import { modalSlice } from '../redux/reducers/modalReducer'
 import { userSlice } from '../redux/reducers/userReducer'
 
+export enum endGameStatuses{
+    TIME="TIME",
+    MATE="MATE",
+}
+
 
 
 export const useWebSocket = ()  : void => {
@@ -36,12 +41,14 @@ export const useWebSocket = ()  : void => {
                     }))           
                     newWebSocket.onmessage = (event : MessageEvent<any>) => {
                         const data : {method : string,[key : string] : unknown} = JSON.parse(event.data)
-                        console.log(data)
+                        if (data.method !== SocketMethods.updateTimeState) {
+                            console.log("method",data.method)
+                            console.log("data",data)
+                        }
                         switch (data.method) {
                             case SocketMethods.connection:
                                 dispatch(setUser(user))
                                 const inQueue = data.inQueue
-                                console.log(inQueue,"inQueue")
                                 if (data?.gameData) {
                                     const gameData = data.gameData as IGameData
                                     // TODO : try to add if (user),then ...
@@ -113,59 +120,67 @@ export const useWebSocket = ()  : void => {
                             case SocketMethods.updateGameState:
                                 if (data?.gameData) {
                                     // enemy user made move,recive new data and give to client
-                                    const gameData = data.gameData as {gameActive : boolean
-                                        ,updatedBoardCells : Cell[][]
+                                    const gameData = data.gameData as {
+                                        updatedBoardCells : Cell[][]
                                         ,blackTakenFigures : Figure[]
                                         ,whiteTakenFigures : Figure[]
                                         ,currentMove : Colors}
                                         if (gameData) {
+                                            console.log("gamedata",gameData)
                                             // regive class methods for Cell's instances again
                                             dispatch(updateCellsInExistingBoard(parseCells(gameData.updatedBoardCells as Cell[][])))
-                                            // regive class methods for Figure's instances again
-                                            gameData.blackTakenFigures = parseFigures(gameData.blackTakenFigures)
-                                            gameData.whiteTakenFigures = parseFigures(gameData.whiteTakenFigures)
                                             dispatch(updateGameDataAftetMove({
                                                 currentMove : gameData.currentMove,
-                                                whiteTakenFigures : gameData.whiteTakenFigures,
-                                                blackTakenFigures : gameData.blackTakenFigures,
+                                                whiteTakenFigures : parseFigures(gameData.whiteTakenFigures),// regive class methods for Figure's instances again
+                                                blackTakenFigures : parseFigures(gameData.blackTakenFigures),// regive class methods for Figure's instances again
                                             }))
                                     }
                                 }
                                 break;
                             case SocketMethods.updateTimeState:
-                                const {wsTime,enemyWsTime} = data
+                                const {clientTime,enemyClientTime} = data
                                 dispatch(updateTimeForClient({
-                                    wsTime : wsTime as number,
-                                    enemyWsTime : enemyWsTime as number,
+                                    clientTime : clientTime as number,
+                                    enemyClientTime : enemyClientTime as number,
                                 }))
                                 break;
                             case SocketMethods.endGame:
-                                const colorWinner = data.winnerColor as Colors | null
-                                dispatch(showGameStauts())
-                                dispatch(endGame(colorWinner))
+                                const colorWinner = data?.winnerColor as Colors | null
+                                const status = data?.status as endGameStatuses // user won by mate or time
+
+                                if (status === endGameStatuses.TIME) {
+                                    const enemyClientTime = data.enemyClientTime as number
+                                    const clientTime = data.clientTime as number
+                                    if (clientTime !== undefined && enemyClientTime !== undefined) {
+                                        dispatch(showGameStauts())
+                                        dispatch(updateTimeForClient({clientTime:clientTime,
+                                        enemyClientTime:enemyClientTime}))
+                                        dispatch(endGame(colorWinner))
+                                    }
+                                } else if (status === endGameStatuses.MATE) {
+                                    dispatch(showGameStauts())
+                                    dispatch(endGame(colorWinner))
+                                }
                                 break;
                         }
                     }
                     newWebSocket.onclose = (event : CloseEvent) => {
                         dispatch(resetSocket())
-                        dispatch(logout())
                     }
                     dispatch(connection(newWebSocket))
                 } 
             } catch (e) {
                 if (ws) {
                     ws.close()
-                } else {
-                    dispatch(resetSocket())
-                    dispatch(logout()) 
                 }
+                dispatch(resetSocket())
+                dispatch(logout()) 
             }
         } else {
             if (ws) {
                 ws.close()
             }
             dispatch(resetSocket())
-            dispatch(logout())
         }
         
         

@@ -4,10 +4,11 @@ import { Figure, FigureNames } from "../models/Figure";
 import { Board } from "../models/Board";
 import whiteHorse from '../chess-assets/whiteHorse.png'
 import blackHorse from '../chess-assets/blackHorse.png'
+import { v4 } from "uuid";
 
 export class Horse extends Figure{
-    constructor(color:Colors){
-        super(color)
+    constructor(color:Colors,figureId? : string){
+        super(color,figureId ? figureId : v4())
         this.name = FigureNames.HORSE
         this.img = color === Colors.WHITE ? whiteHorse : blackHorse
     }

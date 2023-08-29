@@ -57,11 +57,51 @@ export class Board {
         const targetCellInNewBoard = this.getCell(targetCell.i,targetCell.j)
 
         if (!fromCellInNewBoard.figure) return true
+
+        // check for castle rule
+        if (fromCellInNewBoard.figure instanceof King && targetCellInNewBoard?.figure instanceof Rook && targetCellInNewBoard.figure.color === fromCellInNewBoard.figure.color) {
+            const king = fromCellInNewBoard.figure
+            const kingCanSwap = king.canSwap
+            const rook = targetCellInNewBoard.figure
+            const cellForKing  = fromCellInNewBoard.figure.findNewCellForKingWhenCastle(fromCellInNewBoard,targetCellInNewBoard,this)
+            const cellForRook  = fromCellInNewBoard.figure.findNewCellForRookWhenCastle(fromCellInNewBoard,targetCellInNewBoard,this)
+
+            fromCellInNewBoard.figure.moveFigure(fromCellInNewBoard,targetCellInNewBoard,this,true)
+            
+            if (this.kingIsUnderAttack(king.color)) {
+                // return state as before
+                cellForKing.figure = null
+                cellForRook.figure = null
+                fromCellInNewBoard.figure = king
+                if (fromCellInNewBoard.figure instanceof King) {
+                    fromCellInNewBoard.figure.canSwap = kingCanSwap
+                }
+                targetCellInNewBoard.figure = rook
+                return true
+            }
+
+            // return state as before
+            cellForKing.figure = null
+            cellForRook.figure = null
+            fromCellInNewBoard.figure = king
+            if (fromCellInNewBoard.figure instanceof King) {
+                fromCellInNewBoard.figure.canSwap = kingCanSwap
+            }
+            targetCellInNewBoard.figure = rook
+
+          
+
+            return false
+
+        }
+
+        // check for normal turn
         const figureInTargetBefore = targetCellInNewBoard.figure
         const figureThatIsMakingMove = fromCellInNewBoard.figure
-        const cellWhereIsKing = this.getKingCell(figureThatIsMakingMove.color)
         targetCellInNewBoard.figure = figureThatIsMakingMove
         fromCellInNewBoard.figure = null
+
+        const cellWhereIsKing = this.getKingCell(figureThatIsMakingMove.color)
 
 
         for (let i = 0 ;i<this.cells.length;i++){
@@ -69,7 +109,7 @@ export class Board {
                 const cell = this.getCell(i,j)
                 if (!cell.figure) continue
                 if (cell.figure.color === figureThatIsMakingMove.color) continue
-                if (cell.figure.canMove(cell,targetCellInNewBoard.figure instanceof King ? targetCellInNewBoard : cellWhereIsKing,this)) {
+                if (cell.figure.canMove(cell,cellWhereIsKing,this)) {
                     // return state as before
                     fromCellInNewBoard.figure = figureThatIsMakingMove
                     targetCellInNewBoard.figure = figureInTargetBefore
@@ -77,6 +117,7 @@ export class Board {
                 }
             }
         }
+        
 
         // return state as before
         fromCellInNewBoard.figure = figureThatIsMakingMove

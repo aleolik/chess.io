@@ -5,13 +5,14 @@ import { Board } from "../models/Board";
 import { Queen } from "./Queen";
 import whitePawn from '../chess-assets/whitePawn.png'
 import blackPawn from '../chess-assets/blackPawn.png'
+import { v4 } from "uuid";
 
 export class Pawn extends Figure{
 
     isFirstTurn : boolean = true
 
-    constructor(color:Colors,isFirstTurn : boolean = true){
-        super(color)
+    constructor(color:Colors,isFirstTurn : boolean = true,figureId?:string){
+        super(color,figureId ? figureId : v4())
         this.name = FigureNames.PAWN
         this.img = color === Colors.WHITE ? whitePawn : blackPawn
         this.isFirstTurn = isFirstTurn
@@ -62,7 +63,7 @@ export class Pawn extends Figure{
     }
 
     public transformPawnToAnotherFiqure(fromCell : Cell,targetCell : Cell){
-        const newFiqure = new Queen(this.color)
+        const newFiqure = new Queen(this.color,this.id)
         targetCell.figure = newFiqure
         fromCell.figure = null
     }

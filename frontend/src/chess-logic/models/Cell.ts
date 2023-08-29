@@ -14,12 +14,12 @@
         figure : Figure | null = null;
         available : boolean;
         id : string;
-        constructor(i:availableCoordinates,j:availableCoordinates,color:Colors,figure:Figure | null){
+        constructor(i:availableCoordinates,j:availableCoordinates,color:Colors,figure:Figure | null,id?:string){
             this.i = i; // row
             this.j = j; // column
             this.color = color;
             this.available = false
-            this.id = v4()
+            this.id = id ? id : v4()
             this.figure = figure
         }
 

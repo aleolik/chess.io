@@ -4,10 +4,11 @@ import { Figure, FigureNames } from "../models/Figure";
 import { Board } from "../models/Board";
 import whiteRook from '../chess-assets/whiteRook.png'
 import blackRook from '../chess-assets/blackRook.png'
+import { v4 } from "uuid";
 
 export class Rook extends Figure{
-    constructor(color:Colors){
-        super(color)
+    constructor(color:Colors,figureId? : string){
+        super(color,figureId ? figureId : v4())
         this.name = FigureNames.ROOK
         this.img  = color === Colors.WHITE ? whiteRook : blackRook
     }

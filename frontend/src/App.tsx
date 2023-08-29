@@ -47,11 +47,7 @@ function App() {
         <Routes>
           <Route path='/' element={<Layout/>}>
             <Route element={<MainPage/>} path='/'></Route>
-            <Route element={
-            <AuthPage>
-              <SinglePlayerBoardPage/>
-            </AuthPage>
-            } path='/single-player'></Route>
+            <Route element={<SinglePlayerBoardPage/>} path='/single-player'></Route>
             <Route element={
               <AuthPage>
                  <MultiPlayerBoard/>

@@ -9,24 +9,24 @@ import { Figure, FigureNames } from "../chess-logic/models/Figure";
 
 export const createFigureByProperties = (figure : Figure) : Figure | null => {
     if (figure.name === FigureNames.ROOK){
-        return new Rook(figure.color)
+        return new Rook(figure.color,figure.id)
     }
     if (figure.name === FigureNames.PAWN){
         const pawn = figure as Pawn
-        return new Pawn(figure.color,pawn.isFirstTurn)
+        return new Pawn(figure.color,pawn.isFirstTurn,figure.id)
     }
     if (figure.name === FigureNames.HORSE){
-        return new Horse(figure.color)
+        return new Horse(figure.color,figure.id)
     }
     if (figure.name === FigureNames.BISHOP){
-        return new Bishop(figure.color)
+        return new Bishop(figure.color,figure.id)
     }
     if (figure.name === FigureNames.KING){
         const king = figure as King
-        return new King(figure.color,king.isFirstSwap)
+        return new King(figure.color,king.canSwap,figure.id)
     }
     if (figure.name === FigureNames.QUEEN){
-        return new Queen(figure.color)
+        return new Queen(figure.color,figure.id)
     }
 
     return null

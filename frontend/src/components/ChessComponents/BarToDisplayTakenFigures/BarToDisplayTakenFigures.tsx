@@ -4,7 +4,6 @@ import { Colors } from '../../../chess-logic/models/Colors'
 import scss from './BarToDisplayTakenFigures.module.scss'
 
 interface BarToDisplayTakenFiguresProps{
-    color : Colors // display black figures at the top,white at the bottom
     takenFigures : Figure[]
 }
 const BarToDisplayTakenFigures : FC<BarToDisplayTakenFiguresProps> = ({takenFigures}) => {
@@ -12,11 +11,11 @@ const BarToDisplayTakenFigures : FC<BarToDisplayTakenFiguresProps> = ({takenFigu
     <div className={scss.bar}>
         {takenFigures.map((figure) => {
             return (
-                <>
+                <div key={figure.id}>
                     {figure.img && (
-                        <img key={figure.id} className={scss.figureInBar} src={figure.img} alt='figure'></img>
+                        <img className={scss.figureInBar} src={figure.img} alt='figure'></img>
                     )}
-                </>
+                </div>
             )
         })}
     </div>

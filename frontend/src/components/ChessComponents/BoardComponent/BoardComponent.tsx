@@ -126,7 +126,7 @@ const BoardComponent = () => {
   
   return (
     <div className={scss.container}>
-        <BarToDisplayTakenFigures takenFigures={whiteTakenFigures} color={Colors.WHITE}/>
+        <BarToDisplayTakenFigures takenFigures={whiteTakenFigures}/>
         {showModal && showWindow === AvailableWindows.GameStatus && (
           <ModalWindow children={<GameStatusWindow isWinner={isWinner}/>}/>
         )}
@@ -148,7 +148,7 @@ const BoardComponent = () => {
               )
             })}
       </div>
-      <BarToDisplayTakenFigures takenFigures={blackTakenFigures} color={Colors.BLACK}/>
+      <BarToDisplayTakenFigures takenFigures={blackTakenFigures}/>
       <RestartBoardButton restart={restart}/>
     </div>
   )

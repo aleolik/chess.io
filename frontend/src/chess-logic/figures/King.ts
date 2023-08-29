@@ -5,14 +5,15 @@ import { Board } from "../models/Board";
 import { Rook } from "./Rook";
 import whiteKing from '../chess-assets/whiteKing.png'
 import blackKing from '../chess-assets/blackKing.png'
+import { v4 } from "uuid";
 
 export class King extends Figure{
-    isFirstSwap : boolean = true
-    constructor(color:Colors,isFirstSwap : boolean = true){
-        super(color)
+    canSwap : boolean = true
+    constructor(color:Colors,canSwap : boolean = true,figureId? : string){
+        super(color,figureId ? figureId : v4())
         this.name = FigureNames.KING
         this.img = color === Colors.WHITE ? whiteKing : blackKing
-        this.isFirstSwap = isFirstSwap
+        this.canSwap = canSwap ? canSwap : true
     }
 
     isEmptyVertical(fromCell:Cell,targetCell:Cell) : boolean{
@@ -34,7 +35,7 @@ export class King extends Figure{
     }
     
     canSwapWithRook(fromCell:Cell,target:Cell,board:Board) : boolean{
-        if (!this.isFirstSwap) return false
+        if (!this.canSwap) return false
 
         // king is not under attack
         const cellWhereIsKing  = board.getKingCell(this.color)
@@ -102,10 +103,10 @@ export class King extends Figure{
         return false
     }
 
-    findNewCellByCastle(fromCell : Cell,targetCell:Cell,board:Board) : Cell{
+    findNewCellForKingWhenCastle(fromCell : Cell,targetCell:Cell,board:Board) : Cell{
         const rook = targetCell.figure as Rook
-            // swap with white rooks
-            if (rook.color === Colors.WHITE) {
+        // swap with white rooks
+        if (rook.color === Colors.WHITE) {
             // left rook
             if (targetCell.j === 0) {
                 // short swap
@@ -128,6 +129,37 @@ export class King extends Figure{
             }
         }
     }
+
+    findNewCellForRookWhenCastle(fromCell : Cell,targetCell:Cell,board:Board) : Cell{
+        const rook = targetCell.figure as Rook
+        // swap with white rooks
+        if (rook.color === Colors.WHITE) {
+            // left rook
+            if (targetCell.j === 0) {
+                // short swap
+                const newCellForRook = board.getCell(7,2)
+                return newCellForRook
+            }
+            // right rook
+            else {
+                const newCellForRook = board.getCell(7,4)
+                return newCellForRook
+            }
+        } else {
+            // swap with black rooks
+            if (targetCell.j === 0) {
+                // short swap
+                const newCellForRook = board.getCell(0,2)
+                return newCellForRook
+            }
+            // right rook
+            else {
+                const newCellForRook = board.getCell(0,4)
+                return newCellForRook
+            }
+        }
+
+    }
     canMove(fromCell:Cell,targetCell:Cell,board:Board): boolean {
         if (!super.canMove(fromCell,targetCell,board) && !(targetCell.figure instanceof Rook && fromCell.figure instanceof King && targetCell.figure.color === fromCell.figure.color)) return false
         if (targetCell.figure && targetCell.figure.color === fromCell?.figure?.color) {
@@ -144,7 +176,7 @@ export class King extends Figure{
         if (this.isEmptyDiagonal(fromCell,targetCell))  return  true
 
         // RULE : You can swap with your's rook if every statement are true
-        if ((this.name === FigureNames.KING && targetCell.figure && targetCell.figure.name === FigureNames.ROOK) && this.isFirstSwap && (targetCell.figure.color === this.color)) {
+        if ((this.name === FigureNames.KING && targetCell.figure && targetCell.figure.name === FigureNames.ROOK) && this.canSwap && (targetCell.figure.color === this.color)) {
             if (this.canSwapWithRook(fromCell,targetCell,board)) {
                 // find cell,after the swap with rook,that king will be moved in
                 return true
@@ -157,46 +189,21 @@ export class King extends Figure{
     }
 
     moveFigure(fromCell:Cell,targetCell:Cell,board:Board,doSwap : boolean = false): void {
-        if (this.isFirstSwap && doSwap) {
+        if (this.canSwap && doSwap) {
             const rook = targetCell.figure as Rook
             if (rook.color !== this.color) return;
             
-            const newCellForKing = this.findNewCellByCastle(fromCell,targetCell,board)
-            // swap with white rooks
-            if (rook.color === Colors.WHITE) {
-                // left rook
-                if (targetCell.j === 0) {
-                    // short swap
-                    const newCellForRook = board.getCell(7,2)
-                    newCellForRook.figure = rook
-                }
-                // right rook
-                else {
-                    const newCellForRook = board.getCell(7,4)
-                    newCellForRook.figure = rook
-                }
-            }
-
-            // swap with black rooks
-            if (rook.color === Colors.BLACK) {
-                if (targetCell.j === 0) {
-                    // short swap
-                    const newCellForRook = board.getCell(0,2)
-                    newCellForRook.figure = rook
-                }
-                // right rook
-                else {
-                    const newCellForRook = board.getCell(0,4)
-                    newCellForRook.figure = rook
-                }
-            }
+            const newCellForKing = this.findNewCellForKingWhenCastle(fromCell,targetCell,board)
+            const newCellForRook = this.findNewCellForRookWhenCastle(fromCell,targetCell,board)
+            newCellForRook.figure = rook
             newCellForKing.figure = this
             targetCell.figure = null
             fromCell.figure = null
         } else {
             super.moveFigure(fromCell,targetCell,board)
         }
-        this.isFirstSwap = false
+        // king moved,so you can't castle  anymore
+        this.canSwap = false
     }
 
 }

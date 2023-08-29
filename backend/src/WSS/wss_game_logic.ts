@@ -8,7 +8,12 @@ import { setTimerForWs } from "./wss_logic"
 export interface ITimer{
     time : number,
     intervalId : ReturnType<typeof setInterval> | null
-  }
+}
+
+enum endGameStatuses{
+    TIME="TIME",
+    MATE="MATE",
+}
 
 
 export const cleanGameDataAndTimersFromAwss = (aWSS : ICustomWebSocketServer,userId : string,enemyUserId : string) => {
@@ -23,13 +28,14 @@ export const cleanGameDataAndTimersFromAwss = (aWSS : ICustomWebSocketServer,use
             clearInterval(aWSS.activeGames[enemyUserId].clientTimer.intervalId)
         }
         delete aWSS.activeGames[enemyUserId]
-    }   
+     }   
     }
 
 // update aWSS.activeGames[userId].gameData and aWSS.activeGames[enemyUserId].gameData,whenever 1 of the webSockets made move
 export const updateGameDataInAWSS = (userId : string,enemyUserId:string,aWSS : ICustomWebSocketServer,msg : {
     currentMove : Colors,updatedBoardCells : Cell[][],takenFigure : Figure | null
 }) => {
+
     if (aWSS.activeGames[userId] && aWSS.activeGames[userId].gameActive && aWSS.activeGames[userId].board) {
         aWSS.activeGames[userId].board.cells = msg.updatedBoardCells
         aWSS.activeGames[userId].currentMove = msg.currentMove
@@ -53,6 +59,7 @@ export const updateGameDataInAWSS = (userId : string,enemyUserId:string,aWSS : I
             }
         }
     }
+
 
 }
 
@@ -78,7 +85,7 @@ export const makeMove = (ws : ICustomWebSocket,msg:IMsg,aWSS : ICustomWebSocketS
     const msgInfo = msg as {updatedBoardCells : Cell[][],method:string,takenFigure : null | Figure}
     const enemyUserId = aWSS.activeGames[ws.user.id]?.enemyUser?.user?.id
     const enemyWsColor : Colors = aWSS.activeGames[enemyUserId]?.userColor
-    const enemyWsData = findGameDataByUserId(aWSS,aWSS.activeGames[ws.user.id]?.enemyUser?.user?.id)
+    const enemyWsData = findGameDataByUserId(aWSS,enemyUserId)
     const lobbyId = aWSS.activeGames[ws.user.id]?.lobbyId
     if (enemyWsData && enemyUserId && lobbyId) {
         changeTimers(aWSS,ws.id,ws.user.id,enemyUserId + process.env.SOCKET_KEY,enemyUserId)
@@ -92,10 +99,10 @@ export const makeMove = (ws : ICustomWebSocket,msg:IMsg,aWSS : ICustomWebSocketS
             enemyWs.send(JSON.stringify({
                 method : SocketMethods.updateGameState,
                 gameData : {
-                    updatedBoardCells : aWSS.activeGames[enemyWs.user.id].board.cells,
-                    whiteTakenFigures : aWSS.activeGames[enemyWs.user.id].takenFigures.whiteTakenFigures,
-                    blackTakenFigures : aWSS.activeGames[enemyWs.user.id].takenFigures.blackTakenFigures,
-                    currentMove : aWSS.activeGames[enemyWs.user.id].userColor
+                    updatedBoardCells : aWSS.activeGames[enemyUserId].board.cells,
+                    whiteTakenFigures : aWSS.activeGames[enemyUserId].takenFigures.whiteTakenFigures,
+                    blackTakenFigures : aWSS.activeGames[enemyUserId].takenFigures.blackTakenFigures,
+                    currentMove : aWSS.activeGames[enemyUserId].userColor
                 }
             }))
         }
@@ -116,12 +123,18 @@ export const endGameByTime = (wsId : string,userId : string,enemyWsId : string,e
                 ws.send(JSON.stringify({
                     "method":SocketMethods.endGame,
                     "winnerColor":enemyWsColor,
+                    "status" : endGameStatuses.TIME,
+                    "clientTime":aWSS.activeGames[userId].clientTimer.time,
+                    "enemyClientTime":aWSS.activeGames[enemyUserId].clientTimer.time,
                 }))
             }
             if (enemyWs) {
                 enemyWs.send(JSON.stringify({
                     "method":SocketMethods.endGame,
                     "winnerColor":enemyWsColor,
+                    "status" : endGameStatuses.TIME,
+                    "clientTime":aWSS.activeGames[enemyUserId].clientTimer.time,
+                    "enemyClientTime":aWSS.activeGames[userId].clientTimer.time,
                 }))
             }
         } else if (aWSS.activeGames[enemyUserId].clientTimer.time <= 0) {
@@ -130,12 +143,18 @@ export const endGameByTime = (wsId : string,userId : string,enemyWsId : string,e
                 ws.send(JSON.stringify({
                     "method":SocketMethods.endGame,
                     "winnerColor":wsColor,
+                    "status" : endGameStatuses.TIME,
+                    "clientTime":aWSS.activeGames[userId].clientTimer.time,
+                    "enemyClientTime":aWSS.activeGames[enemyUserId].clientTimer.time,
                 }))
             }
             if (enemyWs) {
                 enemyWs.send(JSON.stringify({
                     "method":SocketMethods.endGame,
                     "winnerColor":wsColor,
+                    "status" : endGameStatuses.TIME,
+                    "clientTime":aWSS.activeGames[enemyUserId].clientTimer.time,
+                    "enemyClientTime":aWSS.activeGames[userId].clientTimer.time,
                 }))
             }
         }
@@ -158,11 +177,13 @@ export const endGameByMate = (ws:ICustomWebSocket,aWSS:ICustomWebSocketServer,ms
                 enemyWs.send(JSON.stringify({
                     "method":SocketMethods.endGame,
                     "winnerColor":msgInfo.winnerColor,
+                    "status" : endGameStatuses.MATE,
                 }))
             }
             ws.send(JSON.stringify({
                 "method":SocketMethods.endGame,
                 "winnerColor":msgInfo.winnerColor,
+                "status" : endGameStatuses.MATE,
             }))
         } else {
             // game finished as mate
@@ -170,11 +191,13 @@ export const endGameByMate = (ws:ICustomWebSocket,aWSS:ICustomWebSocketServer,ms
                 enemyWs.send(JSON.stringify({
                     "method":SocketMethods.endGame,
                     "winnerColor":msgInfo.winnerColor,
+                    "status" : endGameStatuses.MATE,
                 }))
             }
             ws.send(JSON.stringify({
                 "method":SocketMethods.endGame,
                 "winnerColor":msgInfo.winnerColor,
+                "status" : endGameStatuses.MATE,
             }))
         }
         if (ws && aWSS.activeGames[ws.user.id] && aWSS.activeGames[ws.user.id].gameActive) {
@@ -194,8 +217,8 @@ export const updateTimeStateForClient = (ws : ICustomWebSocket,aWSS : ICustomWeb
             if (enemyWsData) {
                 ws.send(JSON.stringify({
                 "method" : SocketMethods.updateTimeState,
-                    "wsTime" : aWSS.activeGames[ws.user.id].clientTimer.time,
-                    "enemyWsTime" : enemyWsData.clientTimer.time
+                    "clientTime" : aWSS.activeGames[ws.user.id].clientTimer.time,
+                    "enemyClientTime" : enemyWsData.clientTimer.time
                 }))
             }
         }

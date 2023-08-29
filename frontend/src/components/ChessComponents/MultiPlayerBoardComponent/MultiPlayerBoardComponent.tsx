@@ -26,7 +26,7 @@ const MultiPlayerBoardComponent = () => {
   const [selectedCell,setSelectedCell] = useState<null | Cell>(null)
   const [makeTurnSound] = useSound(turnTickAudio)
   const [deepCopiedBoard,setDeepCopiedBoard] = useState<Board>(new Board())
-  const {endGame,highlightCells,changeCurrentMove,updateBoardForRender,addTakenFigure,clearGameData} = webSocketSlice.actions
+  const {highlightCells,changeCurrentMove,updateBoardForRender,addTakenFigure,clearGameData} = webSocketSlice.actions
   const dispatch = useAppDispatch()
   const showGameStatus = modalSlice.actions.showGameStatus
   const {showModal,showWindow} = useAppSelector(state => state.modal)
@@ -90,14 +90,15 @@ const MultiPlayerBoardComponent = () => {
         if (gameData.userColor === gameData.currentMove) {
           if (ws && gameData.board) {
             if (selectedCell.figure?.canMove(selectedCell,targetCell,gameData.board) && deepCopiedBoard.cells.length &&  !deepCopiedBoard.kingWillBeUnderAttack(selectedCell,targetCell)) {
-              let takenFigureThisMove : null | Figure = null
+              // variable used to store figure that was in attacked cell in memory,to send it later in socket action
+              let takenFigure : null | Figure = null
               if (selectedCell.figure instanceof King && targetCell.figure instanceof Rook && selectedCell.figure.color === targetCell.figure.color) {
                 // SWAP RULE
                 selectedCell.figure.moveFigure(selectedCell,targetCell,gameData.board,true)
               } else {
                 if (targetCell.figure) {
                   const figureInTargetCell = targetCell.figure as Figure
-                  takenFigureThisMove = createFigureByProperties(figureInTargetCell)
+                  takenFigure = createFigureByProperties(figureInTargetCell)
                   dispatch(addTakenFigure(figureInTargetCell))
                 }
                 selectedCell.figure.moveFigure(selectedCell,targetCell,gameData.board)
@@ -106,7 +107,7 @@ const MultiPlayerBoardComponent = () => {
               ws.send(JSON.stringify({
                 "method" : SocketMethods.makeMove,
                 "updatedBoardCells" : gameData.board.cells,
-                "takenFigure":takenFigureThisMove,
+                "takenFigure":takenFigure,
               }))
               dispatch(changeCurrentMove(gameData.currentMove === Colors.BLACK ? Colors.WHITE : Colors.BLACK))
               setSelectedCell(null)
@@ -140,13 +141,9 @@ const MultiPlayerBoardComponent = () => {
   },[gameData?.currentMove])
 
   useEffect(() => {
-    console.log(gameData)
-    console.log(intervalId.current,"current")
     if (gameData && gameData.winner === null && intervalId.current === null) {
-      console.log("setting interval")
       intervalId.current = setInterval(() => {
         if (gameData && ws) {
-          console.log("interval works")
           ws.send(JSON.stringify({
             "method" : SocketMethods.updateTimeState,
           }))
@@ -173,15 +170,15 @@ const MultiPlayerBoardComponent = () => {
           {gameData.gameActive === false && (
             <div style={{'color':'white','fontSize':'10px','letterSpacing':'0.1rem'}}>User {gameData.winner === gameData.userColor ? user?.email : gameData.enemyUser.user.email} won</div>
           )}
-          {gameData?.userColor === Colors.BLACK && (
-            <BarToDisplayTakenFigures color={Colors.BLACK} takenFigures={gameData.blackTakenFigures}/>
-          )}
-          {gameData?.userColor === Colors.WHITE && (
-            <BarToDisplayTakenFigures color={Colors.WHITE} takenFigures={gameData.whiteTakenFigures}/>
-          )}
+          {gameData && gameData.userColor === Colors.BLACK
+          ? (<BarToDisplayTakenFigures  takenFigures={gameData.blackTakenFigures}/>)
+          : (<BarToDisplayTakenFigures  takenFigures={gameData.whiteTakenFigures}/>)
+          }
+
           {showModal && showWindow === AvailableWindows.GameStatus && gameData && !gameData.gameActive && (
               <ModalWindow children={<GameStatusWindow isWinner={gameData.winner}/>}/>
           )}
+          <div className={scss.text}>{gameData?.enemyUser?.user?.username}</div>
           {gameData && (
             <TimeTransformation time={gameData.enemyClientTime}/>
           )}
@@ -232,13 +229,13 @@ const MultiPlayerBoardComponent = () => {
         </div>
         {gameData && (
             <TimeTransformation time={gameData.clientTime}/>
-          )}
-        {gameData?.userColor === Colors.BLACK && (
-            <BarToDisplayTakenFigures color={Colors.WHITE} takenFigures={gameData.whiteTakenFigures}/>
         )}
-        {gameData?.userColor === Colors.WHITE && (
-          <BarToDisplayTakenFigures color={Colors.BLACK} takenFigures={gameData.blackTakenFigures}/>
-        )}
+        <div className={scss.text}>{user?.username}</div>
+        {gameData && gameData.userColor === Colors.BLACK
+          ? (<BarToDisplayTakenFigures  takenFigures={gameData.whiteTakenFigures}/>)
+          : (<BarToDisplayTakenFigures  takenFigures={gameData.blackTakenFigures}/>)
+          }
+
        </>
       )
     }
