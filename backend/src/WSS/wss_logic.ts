@@ -68,9 +68,19 @@ export const connectionHandler = (ws : ICustomWebSocket,msg:IMsg,aWSS:ICustomWeb
         // close old tab(ws)
         wsFromAwssClients.close()
     } else {
+        const gameData = findGameDataByUserId(aWSS,userId)
+        if (gameData) {
+            const enemyWsData = findGameDataByUserId(aWSS,gameData.enemyUser?.user?.id)
+            ws.send(JSON.stringify({
+                method : SocketMethods.connection,
+                inQueue : false,
+                gameData : transformDataAsFrontendType(gameData,enemyWsData)
+            }))
+        }
         ws.send(JSON.stringify({
             method : SocketMethods.connection,
             inQueue : false,
+            gameData : null,
         }))
     }
 }

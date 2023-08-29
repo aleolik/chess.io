@@ -27,6 +27,9 @@ export const userSlice = createSlice({
             state.userOnError = ''
             state.userOnLoad = false
         },
+        finishLoad(state:userState){
+            state.userOnLoad = false
+        },
         logout(state:userState){
             state.userOnError = ''
             state.user = null

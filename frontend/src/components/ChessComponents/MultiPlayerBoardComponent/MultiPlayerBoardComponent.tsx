@@ -150,6 +150,7 @@ const MultiPlayerBoardComponent = () => {
         }
       },1000)
     }
+    // cleanup
     return () => {
       if (intervalId.current) {
         clearInterval(intervalId.current)

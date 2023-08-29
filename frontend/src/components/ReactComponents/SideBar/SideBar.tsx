@@ -29,7 +29,7 @@ const SideBar = () => {
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
     const doLogout = useLogout()
-    const user = useAppSelector(state => state.user)
+    const {user} = useAppSelector(state => state.user)
 
     const token = useCookie("token",user)
 

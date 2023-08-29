@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import scss from './MainPage.module.scss'
 import backgroundImg from '../../assets/background.png'
 import { useNavigate } from 'react-router-dom'
@@ -6,23 +6,47 @@ import { useAppSelector } from '../../redux/hooks/useAppSelector'
 import { SocketMethods } from '../../interfaces/ws_interfaces'
 import Loader from '../../components/ReactComponents/Loader/Loader'
 import { AiOutlineClose } from 'react-icons/ai'
+import userInstance from '../../axios/userInstance'
+import jwtDecode from 'jwt-decode'
+import { IUser } from '../../interfaces/IUser'
+import { AxiosError } from 'axios'
+import { userSlice } from '../../redux/reducers/userReducer'
+import { useAppDispatch } from '../../redux/hooks/useAppDispatch'
 
 
 const MainPage = () => {
-
+  const [errMsg,setErrMsg] = useState<string>("")
   const navigate = useNavigate()
   const {user} = useAppSelector(state => state.user)
- 
   const {ws,inQueue,gameData} = useAppSelector(state => state.webSocket)
+  const userLoad  = userSlice.actions.userLoad
+  const dispatch = useAppDispatch()
 
-  const startQueue = (event : React.MouseEvent<HTMLButtonElement>) => {
-    if (ws && user) {
-        console.log("socket starting queue")
-        ws.send(JSON.stringify({
-            method : SocketMethods.startQueue,
-            id : user.id,
-        }))
+  const startQueue = async(event : React.MouseEvent<HTMLButtonElement>) => {
+    // check auth,then start queue
+    try {
+        const res = await userInstance.get("/user/auth")
+        const token = res.data.token 
+        const decodedUser = jwtDecode(token) as IUser
+        dispatch(userLoad(decodedUser))
+        if (ws && decodedUser) {
+            console.log("socket starting queue")
+            ws.send(JSON.stringify({
+                method : SocketMethods.startQueue,
+                id : decodedUser.id,
+            }))
+        }
+    } catch (err) {
+        const axiosErr = err as AxiosError
+        console.error(axiosErr)
+        if (axiosErr.message) {
+            setErrMsg(axiosErr.message)
+        } else {
+            setErrMsg('unknown error!')
+        }
     }
+
+
   }
 
   const cancelQueue = () => {
@@ -47,6 +71,9 @@ const MainPage = () => {
                                 <Loader/>
                             </div>
                         )}
+                        {errMsg && (
+                            <h1 className={scss.errText}>{errMsg}</h1>
+                        )}
                          {user && (
                             <h1 className={scss.text}>Logined as {user.email}</h1>
                         )}
@@ -63,6 +90,7 @@ const MainPage = () => {
                         {user && !ws && (
                              <h1 className={scss.text}>Connection to webSocket closed,refresh the page,please</h1>
                         )}
+
                         <button disabled={!ws || !user || inQueue || gameData?.gameActive} onClick={startQueue} className={scss.containerButton}>Play Multiplayer</button>
                     </div>
                 </div>
@@ -72,3 +100,4 @@ const MainPage = () => {
 }
 
 export default MainPage
+

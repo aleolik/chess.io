@@ -1,4 +1,4 @@
-import React,{FC, useEffect, useState}from 'react'
+import React,{FC, useEffect, useRef, useState}from 'react'
 import scss from './MultiPlayerBoard.module.scss'
 import MultiPlayerBoardComponent from '../../components/ChessComponents/MultiPlayerBoardComponent/MultiPlayerBoardComponent'
 import { useAppSelector } from '../../redux/hooks/useAppSelector'

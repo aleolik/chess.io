@@ -125,3 +125,15 @@
     color: white;
     font-family: cursive;
 }
+
+
+.errText{
+    font-size: 150%;
+    color: white;
+    font-family: cursive;
+    border: 2px solid red;
+    background-color: rgb(255, 90, 90);
+    letter-spacing: 0.1rem;
+    flex-wrap: wrap;
+    border-radius: 60px;
+}

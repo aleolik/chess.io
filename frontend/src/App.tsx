@@ -21,15 +21,18 @@ import HistoryPage from './Pages/HistoryPage/HistoryPage';
 
 function App() {
   const {showModal,showWindow} = useAppSelector(state => state.modal)
-  const userLoad = userSlice.actions.userLoad
+  const {userLoad,startLoad,finishLoad} = userSlice.actions
   const dispatch = useAppDispatch()
   useEffect(() => {
+    dispatch(startLoad())
     userInstance.get("/user/auth").then((res) => {
       const token = res.data.token 
       const user = jwtDecode(token) as IUser
       dispatch(userLoad(user))
     }).catch((err) => {
       console.error("Failed to login user!")
+    }).finally(() => {
+      dispatch(finishLoad())
     })
   },[])
   useWebSocket()
