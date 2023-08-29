@@ -30,7 +30,8 @@ export const useWebSocket = ()  : void => {
     const dispatch = useAppDispatch()
     const webSocketUrl = "ws://localhost:5000"
     useEffect(() => {
-        if (user) {
+        if (user && !ws) {
+            console.log("tring...",user,ws)
             try {
                 const newWebSocket = new WebSocket(webSocketUrl) as WebSocket
                 newWebSocket.onopen = () => {
@@ -165,22 +166,15 @@ export const useWebSocket = ()  : void => {
                         }
                     }
                     newWebSocket.onclose = (event : CloseEvent) => {
+                        console.log("closing")
                         dispatch(resetSocket())
                     }
                     dispatch(connection(newWebSocket))
                 } 
             } catch (e) {
-                if (ws) {
-                    ws.close()
-                }
                 dispatch(resetSocket())
                 dispatch(logout()) 
             }
-        } else {
-            if (ws) {
-                ws.close()
-            }
-            dispatch(resetSocket())
         }
         
         

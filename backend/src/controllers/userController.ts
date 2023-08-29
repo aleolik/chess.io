@@ -157,7 +157,6 @@ class userController{
     async getAllUsers(req : Request,res : Response,next : NextFunction){
         try {
             const users = await userModel.findAll()
-            console.log(users)
             return res.json(users)
         } catch (e) {
             next(ApiError.badRequest(e))

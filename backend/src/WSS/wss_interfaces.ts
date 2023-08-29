@@ -60,6 +60,7 @@ export interface ICustomWebSocketServer extends WebSocketServer {
 export interface ICustomWebSocket extends WebSocket {
     inQueue : boolean
     id : string
+    uniqueId : string
     user : IUser
 }
 

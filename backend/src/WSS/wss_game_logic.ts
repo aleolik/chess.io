@@ -70,12 +70,15 @@ export const findGameDataByUserId = (aWSS : ICustomWebSocketServer,userId : stri
    return null
 }
 // find webSocket stored in aWSS.activeGames by lobbyId and ws.gameData.userColor
-export const findWebSocketById = (aWSS : ICustomWebSocketServer,webSocketId : string) : ICustomWebSocket | null => {
+export const findWebSocketById = (aWSS : ICustomWebSocketServer,webSocketId : string,uniqueId? : string) : ICustomWebSocket | null => {
     for (const client of aWSS.clients) {
         const clientModified = client as ICustomWebSocket
+        console.log("client",clientModified.id,clientModified.uniqueId)
         const clientId = clientModified?.id
         if (clientId === webSocketId) {
-          return clientModified
+          if (uniqueId) {
+            if (uniqueId !== clientModified.uniqueId) return clientModified
+          } else return clientModified
         }
       }
     return null;
