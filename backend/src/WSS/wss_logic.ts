@@ -3,7 +3,7 @@ import { IUser, IUserFromClient } from "../interfaces"
 import { Colors, IMsg, ICustomWebSocket, ICustomWebSocketServer, IGameDataBackend } from "./wss_interfaces"
 import { SocketMethods } from "./wss_interfaces"
 import { Board } from "../chess-logic/models/Board"
-import { endGameByTime,findGameDataByUserId,findWebSocketById} from "./wss_game_logic"
+import { endGameByTime,findGameDataByUserId,findWebSocketByUserId} from "./wss_game_logic"
 import { v4 } from "uuid"
 
 
@@ -35,12 +35,9 @@ export const connectionHandler = (ws : ICustomWebSocket,msg:IMsg,aWSS:ICustomWeb
         ...user,
         id : userId
     }
-    // used to find webSocket by userId
-    ws.id = userId + process.env.SOCKET_KEY
-    // used to find other webSocket connection for the same user (by ws.id and ws.uniqueId)
-    ws.uniqueId = v4()
-    console.log("Unique id generated",ws.uniqueId)
-    const wsFromAwssClients = findWebSocketById(aWSS,ws.id,ws.uniqueId)
+    // unique socket id
+    ws.id = v4()
+    const wsFromAwssClients = findWebSocketByUserId(aWSS,userId,ws.id)
     // if from same browser user connected in 2 or more tabs
     if (wsFromAwssClients) {
         // regive inQueue value to new connected tab(ws)
@@ -99,14 +96,14 @@ export const setClientQueueStatusToUnactive = (ws : ICustomWebSocket) => {
     }))
 }
 
-export const setTimerForWs = (wsId : string,userId : string,enemyWsId : string,enemyUserId : string,aWSS : ICustomWebSocketServer) => {
+export const setTimerForUser = (userId : string,enemyUserId : string,aWSS : ICustomWebSocketServer) => {
 
     if (aWSS.activeGames[userId].clientTimer.intervalId === null) {
         const intervalId = setInterval(() => {
             if (aWSS.activeGames[userId] && aWSS.activeGames[userId].clientTimer.time > 0) {
                 aWSS.activeGames[userId].clientTimer.time -= 1
             } else {
-                endGameByTime(wsId,userId,enemyWsId,enemyUserId,aWSS)
+                endGameByTime(userId,enemyUserId,aWSS)
             }
         },1000)
     
@@ -191,9 +188,9 @@ export const findSessionForClient = (aWSS : ICustomWebSocketServer,ws:ICustomWeb
 
                 // start timer for white
                 if (clientColor === Colors.WHITE) {
-                    setTimerForWs(client.id,client.user.id,ws.id,ws.user.id,aWSS)
+                    setTimerForUser(client.user.id,ws.user.id,aWSS)
                 } else if (wsColor === Colors.WHITE) {
-                    setTimerForWs(ws.id,ws.user.id,client.id,client.user.id,aWSS)
+                    setTimerForUser(ws.user.id,client.user.id,aWSS)
                 }
             }
         }
@@ -204,7 +201,7 @@ export const closeWebSocketAction = (ws : ICustomWebSocket,aWSS : WebSocketServe
     // delete active client from message
     const clients : Set<ICustomWebSocket> = new Set()
     aWSS.clients.forEach((client : ICustomWebSocket) => {
-        if (client.uniqueId !== ws.uniqueId) {
+        if (client.id !== ws.id) {
             clients.add(client)
         }
     })  

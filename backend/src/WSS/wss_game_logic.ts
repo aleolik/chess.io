@@ -2,7 +2,7 @@ import { WebSocketServer } from "ws"
 import { Colors, IMsg, SocketMethods, ICustomWebSocket, ICustomWebSocketServer, IGameDataBackend } from "./wss_interfaces"
 import { Cell } from "../chess-logic/models/Cell"
 import { Figure } from "../chess-logic/models/Figure"
-import { setTimerForWs } from "./wss_logic"
+import { setTimerForUser } from "./wss_logic"
 
 
 export interface ITimer{
@@ -13,6 +13,20 @@ export interface ITimer{
 enum endGameStatuses{
     TIME="TIME",
     MATE="MATE",
+}
+
+export const findWebSocketByUserId = (aWSS : ICustomWebSocketServer,userId : string,currentSocketId? : string) : null | ICustomWebSocket => {
+    for (let client of aWSS.clients) {
+        const clientModified = client as ICustomWebSocket
+        if (clientModified.user.id === userId) {
+            // curretSocketId user to find second connection for same user
+            if (currentSocketId) {
+                if (clientModified.id !== currentSocketId) return clientModified
+            } else return clientModified
+        }
+    }
+    
+    return null
 }
 
 
@@ -69,20 +83,7 @@ export const findGameDataByUserId = (aWSS : ICustomWebSocketServer,userId : stri
    }
    return null
 }
-// find webSocket stored in aWSS.activeGames by lobbyId and ws.gameData.userColor
-export const findWebSocketById = (aWSS : ICustomWebSocketServer,webSocketId : string,uniqueId? : string) : ICustomWebSocket | null => {
-    for (const client of aWSS.clients) {
-        const clientModified = client as ICustomWebSocket
-        console.log("client",clientModified.id,clientModified.uniqueId)
-        const clientId = clientModified?.id
-        if (clientId === webSocketId) {
-          if (uniqueId) {
-            if (uniqueId !== clientModified.uniqueId) return clientModified
-          } else return clientModified
-        }
-      }
-    return null;
-}
+
 // recieves new data (last turn made,new state of the board,new state of taken figures etc...),stores new data in the aWSS.activeGames[ws.user.id] and aWSS.activeGames[enemyWs.user.id],sends new data to enemyWs
 export const makeMove = (ws : ICustomWebSocket,msg:IMsg,aWSS : ICustomWebSocketServer) => {
     const msgInfo = msg as {updatedBoardCells : Cell[][],method:string,takenFigure : null | Figure}
@@ -91,13 +92,13 @@ export const makeMove = (ws : ICustomWebSocket,msg:IMsg,aWSS : ICustomWebSocketS
     const enemyWsData = findGameDataByUserId(aWSS,enemyUserId)
     const lobbyId = aWSS.activeGames[ws.user.id]?.lobbyId
     if (enemyWsData && enemyUserId && lobbyId) {
-        changeTimers(aWSS,ws.id,ws.user.id,enemyUserId + process.env.SOCKET_KEY,enemyUserId)
+        changeTimers(ws.user.id,enemyUserId,aWSS)
         updateGameDataInAWSS(ws.user.id,enemyUserId,aWSS,{
             "updatedBoardCells" : msgInfo.updatedBoardCells,
             "currentMove" : enemyWsColor,
             "takenFigure" : msgInfo.takenFigure,
         })
-        const enemyWs = findWebSocketById(aWSS,enemyUserId+process.env.SOCKET_KEY)
+        const enemyWs = findWebSocketByUserId(aWSS,enemyUserId)
         if (enemyWs) {
             enemyWs.send(JSON.stringify({
                 method : SocketMethods.updateGameState,
@@ -112,14 +113,14 @@ export const makeMove = (ws : ICustomWebSocket,msg:IMsg,aWSS : ICustomWebSocketS
     }
 }
 
-export const endGameByTime = (wsId : string,userId : string,enemyWsId : string,enemyUserId : string,aWSS:ICustomWebSocketServer) => {
+export const endGameByTime = (userId : string,enemyUserId : string,aWSS:ICustomWebSocketServer) => {
     if (aWSS.activeGames[userId] && aWSS.activeGames[enemyUserId]) {
         // send endGame event
         const lobbyId = aWSS.activeGames[userId].lobbyId
         const wsColor = aWSS.activeGames[userId].userColor
         const enemyWsColor = aWSS.activeGames[enemyUserId].userColor
-        const ws = findWebSocketById(aWSS,wsId)
-        const enemyWs = findWebSocketById(aWSS,enemyWsId)
+        const ws = findWebSocketByUserId(aWSS,userId)
+        const enemyWs = findWebSocketByUserId(aWSS,enemyUserId)
         if (aWSS.activeGames[userId].clientTimer.time <= 0) {
             // enemyWs won
             if (ws) {
@@ -172,7 +173,7 @@ export const endGameByMate = (ws:ICustomWebSocket,aWSS:ICustomWebSocketServer,ms
     if (ws?.user.id) {
         const lobbyId = aWSS.activeGames[ws.user.id].lobbyId
         const enemyWsColor = aWSS.activeGames[ws.user.id].enemyUser.color
-        const enemyWs = findWebSocketById(aWSS,aWSS.activeGames[ws.user.id].enemyUser.user.id + process.env.SOCKET_KEY)
+        const enemyWs = findWebSocketByUserId(aWSS,aWSS.activeGames[ws.user.id].enemyUser.user.id)
         const enemyUserId = aWSS.activeGames[ws.user.id]?.enemyUser.user.id
         // game finished as tie
         if (msgInfo.winnerColor === null) {
@@ -229,7 +230,7 @@ export const updateTimeStateForClient = (ws : ICustomWebSocket,aWSS : ICustomWeb
 
 }
 
-export const changeTimers = (aWSS : ICustomWebSocketServer,wsId : string,userId : string,enemyWsId : string,enemyUserId : string) => {
+export const changeTimers = (userId : string,enemyUserId : string,aWSS : ICustomWebSocketServer,) => {
 
     if (userId) {
         if (aWSS.activeGames[userId]) {
@@ -239,6 +240,6 @@ export const changeTimers = (aWSS : ICustomWebSocketServer,wsId : string,userId 
             }
         }   
     }
-    setTimerForWs(enemyWsId,enemyUserId,wsId,userId,aWSS)
+    setTimerForUser(enemyUserId,userId,aWSS)
 
 }
