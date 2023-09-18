@@ -2,7 +2,6 @@ import { Router } from "express"
 import userController from "../controllers/userController"
 import authMiddleware from "../middleware/authMiddleware"
 import userAdminRouter from "./userAdminRouter"
-import { AVAILABLE_ROLES } from "../models/User"
 
 
 const userRotuer = Router()

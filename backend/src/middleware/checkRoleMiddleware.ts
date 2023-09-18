@@ -1,7 +1,6 @@
-import ApiError from '../error/ApiError'
 import jwt from 'jsonwebtoken'
 import { AVAILABLE_ROLES, userClass } from '../models/User'
-import { IUser, IUserFromClient } from '../interfaces'
+import { IUserFromClient } from '../interfaces'
 import { NextFunction,Request,Response } from 'express'
 
 

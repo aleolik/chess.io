@@ -1,6 +1,6 @@
-import { Colors } from "./chess-logic/models/Colors";
 import { AVAILABLE_ROLES } from "./models/User";
 import { Request } from "express";
+
 export interface IUser{
     email : string;
     id : string;

@@ -1,11 +1,13 @@
 import dotenv from 'dotenv'
-dotenv.config()
-import ErrorHandlingMiddleware from "./src/middleware/errorHandlingMiddleware"
+import ErrorHandlingMiddleware from "../src/middleware/errorHandlingMiddleware"
+import path from 'path'
+// or your path to dev.env file
+dotenv.config({path:path.resolve(__dirname,"./dev.env")})
 import cors from 'cors'
 import express from 'express'
-import startDB from './src/database/startDatabse'
-import globalRouter from './src/routes/index'
-import initalizeWebSocketServer from './src/WSS/wss_init'
+import startDB from '../src/database/startDatabse'
+import globalRouter from '../src/routes/index'
+import initalizeWebSocketServer from '../src/WSS/wss_init'
 import cookieParser from 'cookie-parser'
 
 const app = express()
@@ -30,9 +32,11 @@ const start = async() => {
 
     startDB()
 
-    const PORT = process.env.PORT
+    const PORT = parseInt(process.env.PORT)
 
-    app.listen(PORT,() => {
+    const HOST = process.env.HOST // listen all interfaces or not (all by default)
+
+    app.listen(PORT,HOST,() => {
         console.log(`listening PORT : ${PORT}
         `)
     })

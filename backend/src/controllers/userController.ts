@@ -1,13 +1,12 @@
 import ApiError from "../error/ApiError"
-import {userModel, userClass, AVAILABLE_ROLES} from "../models/User"
+import {userModel, userClass} from "../models/User"
 import generateToken from "../utils/generateToken"
-import History from "../models/History"
 import bcrypt from 'bcrypt'
 import checkUserData from "../utils/checkUserData"
 import generatePassword from 'generate-password'
 import getRandomInt from "../utils/getRandomInt"
 import { Request,Response,NextFunction  } from "express"
-import { IRequestWithUser, IUserFromClient } from "../interfaces"
+import { IRequestWithUser } from "../interfaces"
 
 class userController{
     async register(req : Request,res : Response,next : NextFunction){

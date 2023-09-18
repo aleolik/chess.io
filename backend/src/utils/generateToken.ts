@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken'
-import {AVAILABLE_ROLES} from '../models/User'
 
 const generateToken = (id : number,email : string,username : string) => {
 
