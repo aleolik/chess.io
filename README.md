@@ -17,3 +17,5 @@
 ## run database on your localhost
 ## run frontend : npm start
 ## run backend : npm run dev
+
+# Project Demo - https://www.youtube.com/watch?v=u3zU2ZCAGF4&t=25s&ab_channel=AlOl
