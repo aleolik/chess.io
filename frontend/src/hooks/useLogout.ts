@@ -1,6 +1,5 @@
 import { useAppDispatch } from "../redux/hooks/useAppDispatch"
 import { userSlice } from "../redux/reducers/userReducer"
-import removeCookie from '../utils/removeCookie'
 import userInstance from "../axios/userInstance"
 import { webSocketSlice } from "../redux/reducers/webSocketReducer"
 

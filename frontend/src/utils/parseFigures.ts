@@ -1,5 +1,4 @@
 
-
 import { Figure } from "../chess-logic/models/Figure"
 import { createFigureByProperties } from "./createFigureByProperties"
 

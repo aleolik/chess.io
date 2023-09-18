@@ -38,7 +38,6 @@ const SideBar = () => {
     }
 
     const {showModalRegister,showModalLogin} = modalSlice.actions
-    const {showModal,showWindow} = useAppSelector(state => state.modal)
  
    const openRegisterWindow = () => {
         dispatch(showModalRegister())

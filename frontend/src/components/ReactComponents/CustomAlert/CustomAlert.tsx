@@ -1,4 +1,4 @@
-import React,{FC, useEffect, useState} from 'react'
+import {FC, useEffect, useState} from 'react'
 
 export enum AlertTypes {
   Error = "Error",
@@ -20,7 +20,7 @@ const CustomAlert : FC<ICustomAlert> = ({message,type}) => {
     if (type === AlertTypes.Info){
       setClassNames(prev => ([...prev,'alert-info']))
     }
-  },[])
+  },[type])
 
   return (
     <div className={classNames.join(' ')}>{message}</div>

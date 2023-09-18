@@ -115,7 +115,7 @@ const RegisterForm = () => {
       setAsyncLoading(true)
       const generatedPassword = await getRandomCorrectPassword()
       if (generatedPassword instanceof AxiosError) {
-        dispatch(errorLoad(`status : ${generatedPassword.status?.toString() ? generatedPassword.status.toString() : "500"},errMessage : ${generatedPassword.message}`))
+        dispatch(errorLoad(`errMessage : ${generatedPassword.message}`))
       } 
       if (passwordInputRef.current && passwordRepeatedInputRef.current && typeof generatedPassword === 'string' && generatedPassword.length) {
         // set value in inputs
@@ -137,11 +137,9 @@ const RegisterForm = () => {
       }
     } catch (e) {
       const err = e as AxiosError
-      dispatch(errorLoad(`status : ${err.status?.toString() ? err.status.toString() : "500"},errMessage : ${err.message}`))
+      dispatch(errorLoad(`errMessage : ${err.message}`))
     } finally {
-      setTimeout(() => {
-        setAsyncLoading(false) 
-      },450);
+      setAsyncLoading(false)
     }
   }
 

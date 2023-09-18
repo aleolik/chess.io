@@ -1,8 +1,8 @@
-    import { Board } from "./Board";
+
     import { Colors } from "./Colors";
-    import { Figure, FigureNames } from "./Figure";
+    import { Figure } from "./Figure";
     import {v4} from 'uuid'
-    import { King } from "../figures/King";
+
 
 
 

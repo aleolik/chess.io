@@ -1,4 +1,4 @@
-import React,{FC, useEffect} from 'react'
+import React,{FC} from 'react'
 import { useAppDispatch } from '../../../redux/hooks/useAppDispatch'
 import {useAppSelector} from '../../../redux/hooks/useAppSelector'
 import scss from './ModalWindow.module.scss'

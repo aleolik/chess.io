@@ -1,6 +1,5 @@
-import React, { FC } from 'react'
+import { FC } from 'react'
 import { Figure } from '../../../chess-logic/models/Figure'
-import { Colors } from '../../../chess-logic/models/Colors'
 import scss from './BarToDisplayTakenFigures.module.scss'
 
 interface BarToDisplayTakenFiguresProps{

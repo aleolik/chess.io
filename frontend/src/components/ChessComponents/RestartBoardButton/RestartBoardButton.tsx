@@ -1,4 +1,4 @@
-import React,{FC, MutableRefObject, useEffect, useRef} from 'react'
+import {FC, MutableRefObject, useEffect, useRef} from 'react'
 import scss from './RestartBoardButton.module.scss'
 
 interface RestartBoardButtonProps{

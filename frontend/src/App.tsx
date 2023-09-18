@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import MainPage from './Pages/MainPage/MainPage';
 import { Routes,Route } from 'react-router-dom';
 import Layout from './components/ReactComponents/Layout/Layout';
 import SinglePlayerBoardPage from './Pages/singlePlayerBoard/singlePlayerBoard';
 import MultiPlayerBoard from './Pages/MultiPlayerBoard/MultiPlayerBoard';
 import { useAppSelector } from './redux/hooks/useAppSelector';
-import { AvailableWindows } from './redux/reducers/modalReducer';
+import { AvailableWindows, modalSlice } from './redux/reducers/modalReducer';
 import RegisterForm from './components/ReactComponents/RegisterForm/RegisterForm';
 import LoginForm from './components/ReactComponents/LoginForm/LoginForm';
 import ModalWindow from './components/ReactComponents/ModalWindow/ModalWindow';
@@ -21,14 +21,19 @@ import HistoryPage from './Pages/HistoryPage/HistoryPage';
 
 function App() {
   const {showModal,showWindow} = useAppSelector(state => state.modal)
+  const closeModalWindow = modalSlice.actions.closeModalWindow
   const {userLoad,startLoad,finishLoad} = userSlice.actions
   const dispatch = useAppDispatch()
   useEffect(() => {
+    const url = "/user/auth"
     dispatch(startLoad())
-    userInstance.get("/user/auth").then((res) => {
+    userInstance.get(url).then((res) => {
       const token = res.data.token 
       const user = jwtDecode(token) as IUser
       dispatch(userLoad(user))
+      if (showModal && (showWindow === AvailableWindows.Register || showWindow === AvailableWindows.Login)) {
+        dispatch(closeModalWindow())
+      }
     }).catch((err) => {
       console.error("Failed to login user!")
     }).finally(() => {

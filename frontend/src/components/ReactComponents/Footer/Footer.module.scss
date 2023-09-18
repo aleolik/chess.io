@@ -5,7 +5,7 @@
     width: 100vw;
     background-color: $black;
     bottom:0% ;
-    height: max(15vh,150px);
+    height: 20vh;
     color: white;
     font-size: 30px;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
@@ -20,7 +20,6 @@
     &:hover{
      color: blue;
      text-decoration: underline;
-     font-size: 35px;
     }
 }
 

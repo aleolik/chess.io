@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, {useState } from 'react'
 import scss from './MainPage.module.scss'
 import backgroundImg from '../../assets/background.png'
 import { useNavigate } from 'react-router-dom'

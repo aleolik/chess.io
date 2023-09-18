@@ -1,5 +1,5 @@
 .container{
-    justify-content: start;
+    justify-content: flex-start;
     display: flex;
     align-items: top;
     flex-direction: row;
@@ -68,7 +68,7 @@
         width: 100vw;
         display: flex;
         margin-top: 10vh;
-        justify-content: start;
+        justify-content: flex-start;
     }
     .btn{
         height: 7.5vh;

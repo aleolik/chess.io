@@ -1,4 +1,4 @@
-import React, { FC, SetStateAction, useEffect, useState,Dispatch, MutableRefObject } from 'react'
+import React, {useEffect, useState,MutableRefObject, useRef } from 'react'
 import scss from './BoardComponent.module.scss'
 import CellComponent from '../CellComponent/CellComponent'
 import { Board } from '../../../chess-logic/models/Board'
@@ -25,6 +25,9 @@ const BoardComponent = () => {
   const [whiteTakenFigures,setWhiteTakenFigures] = useState<Figure[]>([])
   const [blackTakenFigures,setBlackTakenFigures] = useState<Figure[]>([])
   const [deepCopiedBoard,setDeepCopiedBoard] = useState<Board>(new Board())
+  const [showFromSide,setShowFromSide] = useState<Colors>(Colors.WHITE)
+  const boardElementRef = useRef<null | HTMLDivElement>(null)
+  const [rotateDegress,setRotateDegress] = useState<360 | 0>(360)
   const [makeTurnSound] = useSound(makeTurn)
   const dispatch = useAppDispatch()
   const {showModal,showWindow} = useAppSelector(state => state.modal)
@@ -62,6 +65,23 @@ const BoardComponent = () => {
           selectedCell.figure.moveFigure(selectedCell,targetCell,board)
         }
         makeTurnSound()
+        if (boardElementRef.current) {
+          const animationPlayTime = 2000
+          boardElementRef.current.style.transition = `transform ${animationPlayTime}ms ease-in-out`;
+          boardElementRef.current.style.transform = `rotate(${rotateDegress}deg)`;
+          if (rotateDegress === 0) {
+            setRotateDegress(360)
+          } else if (rotateDegress === 360) {
+            setRotateDegress(0)
+          }
+          setTimeout(() => {
+            if (showFromSide === Colors.WHITE) {
+              setShowFromSide(Colors.BLACK)
+            } else if (showFromSide === Colors.BLACK) {
+              setShowFromSide(Colors.WHITE)
+            }
+          },animationPlayTime-1000);
+        }
         setSelectedCell(null)
         if (isWhiteTurn) {
           setIsWhiteTurn(false)
@@ -130,8 +150,10 @@ const BoardComponent = () => {
         {showModal && showWindow === AvailableWindows.GameStatus && (
           <ModalWindow children={<GameStatusWindow isWinner={isWinner}/>}/>
         )}
-        <div className={scss.board}>
-            {board.cells.map((cellRow:Cell[],index) => {
+        <div ref={boardElementRef} className={scss.board}>
+            {showFromSide === Colors.WHITE
+            ? (
+              <>{board.cells.map((cellRow:Cell[],index) => {
               return (
                 <React.Fragment key={index}>
                   {cellRow.map((cell) => {
@@ -146,7 +168,25 @@ const BoardComponent = () => {
                   })}
                 </React.Fragment>
               )
+            })}</>)
+            : (<>
+               {board.cells.slice().reverse().map((cellRow:Cell[],index) => {
+              return (
+                <React.Fragment key={index+"reversed_desk"}>
+                  {cellRow.map((cell) => {
+                    return (
+                      <CellComponent
+                        onClick={cellOnClick} 
+                        cell={cell}
+                        selectedCell={selectedCell}
+                        key={cell.id+"reversed_desk"}
+                      />
+                    )
+                  })}
+                </React.Fragment>
+              )
             })}
+            </>)}
       </div>
       <BarToDisplayTakenFigures takenFigures={blackTakenFigures}/>
       <RestartBoardButton restart={restart}/>

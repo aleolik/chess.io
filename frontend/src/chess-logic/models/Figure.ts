@@ -1,6 +1,5 @@
 import { Colors } from "./Colors";
 import { Cell } from "./Cell";
-import { v4 } from "uuid";
 import { Board } from "./Board";
 import imgExample from '../chess-assets/blackBishop.png'
 

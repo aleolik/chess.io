@@ -10,7 +10,7 @@ export const LoginUserAction = (email:string,password:string) => {
     const {startLoad,errorLoad,userLoad} = userSlice.actions
 
     return async (dispatch:AppDispatch) => {
-        const url = '/user/login'
+        const url = 'user/login'
         try {
             dispatch(startLoad())
             const res = await userInstance.post(url,{

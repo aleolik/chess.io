@@ -1,5 +1,4 @@
-import React, { FC, useEffect, useRef, useState } from 'react'
-import { IUser } from '../../../interfaces/IUser'
+import React, { useEffect, useRef, useState } from 'react'
 import scss from './MultiPlayerBoardComponent.module.scss'
 import { Cell } from '../../../chess-logic/models/Cell'
 import CellComponent from '../CellComponent/CellComponent'

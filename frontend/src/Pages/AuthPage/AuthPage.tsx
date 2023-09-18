@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect,useState } from 'react'
 import { useAppSelector } from '../../redux/hooks/useAppSelector'
 import scss from './AuthPage.module.scss'
 import Loader from '../../components/ReactComponents/Loader/Loader'
@@ -31,14 +31,18 @@ const AuthPage : React.FC<AuthPageProps> = ({ children }) : any => {
           },100);
 
       
-          return () => clearTimeout(timerId);
+        return () => clearTimeout(timerId);
     }, []);
 
 
     return(
         <>
             {shouldRender === false
-            ? (<div style={{'display':'flex','justifyContent':'center','alignItems':'center'}}><Loader/></div>)
+            ? (
+            <div style={{'display':'flex','justifyContent':'center','alignItems':'center','flexDirection':'column','color':'white','fontSize':25}}>
+                    <Loader/>
+                    trying to login...
+            </div>)
             : (
                 <>
                     {!userOnLoad && !userOnError
@@ -53,7 +57,11 @@ const AuthPage : React.FC<AuthPageProps> = ({ children }) : any => {
                             {userOnError
                             ? (<div className={scss.text}>{userOnError}</div>)
                             : (<>{userOnLoad
-                                ? (<div><Loader/></div>)
+                                ? (
+                                <div style={{'display':'flex','justifyContent':'center','alignItems':'center','flexDirection':'column','color':'white','fontSize':25}}>
+                                    <Loader/>
+                                    trying to login...
+                                </div>)
                                 : (<></>)}
                             </>)}
                         </>)}

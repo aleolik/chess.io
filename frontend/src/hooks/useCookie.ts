@@ -1,5 +1,5 @@
 import {useEffect, useState } from 'react'
-import { useAppSelector } from '../redux/hooks/useAppSelector';
+import { } from '../redux/hooks/useAppSelector';
 import userInstance from '../axios/userInstance';
 
 function useCookie(cookieName : string,dependencies : any | Array<any>) : string {
