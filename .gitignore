@@ -1,7 +1,6 @@
 # See https://help.github.com/s/ignoring-files/ for more about ignoring files.
 
 # dependencies
-.env
 node_modules
 serviceAccountKey.json
 /.pnp
