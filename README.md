@@ -19,3 +19,7 @@
 ## run backend : npm run dev
 
 # Project Demo - https://www.youtube.com/watch?v=u3zU2ZCAGF4&t=25s&ab_channel=AlOl
+
+## Future updates
+# Frontend : Drag and Drop events / Board customization / Profile Page
+# Backend : Game History / Match Analysis
