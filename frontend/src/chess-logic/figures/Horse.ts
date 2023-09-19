@@ -20,7 +20,7 @@ export class Horse extends Figure{
 
         const IMove = Math.abs(fromCell.i - targetCell.i)
         const JMove = Math.abs(fromCell.j - targetCell.j)
-        if (IMove === 1 && JMove === 2 || IMove === 2 && JMove === 1) return true
+        if ((IMove === 1 && JMove === 2) || (IMove === 2 && JMove === 1)) return true
 
         return false
     }

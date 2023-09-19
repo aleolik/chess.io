@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react'
+import { ChangeEvent, FormEvent, useRef, useState } from 'react'
 import scss from './RegisterForm.module.scss'
 import {getRandomCorrectPassword } from '../../../utils/asyncUtils/generateRandomPassword'
 import {errorInEmail} from '../../../utils/data-checkers-light/check-email-light'
@@ -13,7 +13,7 @@ import { closeModalWindowAsync } from '../../../redux/AsyncActions/CloseModalWin
 import FormNavigationButtons from '../FormNavigationButtons/FormNavigationButtons'
 import { userSlice } from '../../../redux/reducers/userReducer'
 import Loader from '../Loader/Loader'
-import { Axios, AxiosError } from 'axios'
+import { AxiosError } from 'axios'
 
 const RegisterForm = () => {
 

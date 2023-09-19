@@ -25,9 +25,8 @@ const MultiPlayerBoardComponent = () => {
   const [selectedCell,setSelectedCell] = useState<null | Cell>(null)
   const [makeTurnSound] = useSound(turnTickAudio)
   const [deepCopiedBoard,setDeepCopiedBoard] = useState<Board>(new Board())
-  const {highlightCells,changeCurrentMove,updateBoardForRender,addTakenFigure,clearGameData} = webSocketSlice.actions
+  const {highlightCells,changeCurrentMove,updateBoardForRender,addTakenFigure} = webSocketSlice.actions
   const dispatch = useAppDispatch()
-  const showGameStatus = modalSlice.actions.showGameStatus
   const {showModal,showWindow} = useAppSelector(state => state.modal)
   const user = useAppSelector(state => state.user.user)
   const intervalId = useRef<ReturnType<typeof setInterval> | null>(null)

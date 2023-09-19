@@ -1,10 +1,8 @@
 import { useAppDispatch } from '../../../redux/hooks/useAppDispatch'
-import {useAppSelector} from '../../../redux/hooks/useAppSelector'
 import {AiOutlineArrowDown} from 'react-icons/ai'
 import {CiLogin} from 'react-icons/ci'
 import scss from './FormNavigationButtons.module.scss'
 import { modalSlice } from '../../../redux/reducers/modalReducer'
-import { userSlice } from '../../../redux/reducers/userReducer'
 
 const FormNavigationButtons  = () => {
   const dispatch = useAppDispatch()

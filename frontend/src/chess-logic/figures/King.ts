@@ -29,8 +29,8 @@ export class King extends Figure{
 
     isEmptyDiagonal(fromCell:Cell,targetCell:Cell) : boolean{
         if (targetCell.figure && targetCell.figure.color === this.color) return false
-        if (fromCell.i-1 === targetCell.i && (fromCell.j-1 === targetCell.j || fromCell.j+1 === targetCell.j)
-        || (fromCell.i+1 === targetCell.i && (fromCell.j-1 === targetCell.j || fromCell.j+1 === targetCell.j))) return true
+        if ((fromCell.i-1 === targetCell.i && (fromCell.j-1 === targetCell.j || fromCell.j+1 === targetCell.j))
+        || ((fromCell.i+1 === targetCell.i && (fromCell.j-1 === targetCell.j || fromCell.j+1 === targetCell.j)))) return true
         return false 
     }
     

@@ -4,11 +4,11 @@ import userInstance from "../axios/userInstance"
 import { webSocketSlice } from "../redux/reducers/webSocketReducer"
 
 
-type useLogout = () => () => void
+type IUseLoguout = () => () => void
 
 
 
-export const useLogout : useLogout = () => {
+export const useLogout : IUseLoguout = () => {
     const dispatch = useAppDispatch()
     const resetSocket = webSocketSlice.actions.resetSocket
     const doLogout = () : void => {

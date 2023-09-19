@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import scss from './SideBar.module.scss'
 import { useAppDispatch } from '../../../redux/hooks/useAppDispatch'
 import { useAppSelector } from '../../../redux/hooks/useAppSelector'
