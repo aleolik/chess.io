@@ -7,7 +7,7 @@ import checkRoleMiddleware from "../middleware/checkRoleMiddleware"
 const userAdminRouter = Router()
 
 
-// admin functions
+// User must have role "ADMIN" to work with endpoints
 userAdminRouter.use(checkRoleMiddleware(AVAILABLE_ROLES.ADMIN_ROLE))
 userAdminRouter.get('/users',userController.getAllUsers)
 userAdminRouter.delete('/delete-user/:id',userController.deleteUser)

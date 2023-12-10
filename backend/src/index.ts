@@ -1,11 +1,11 @@
 import dotenv from 'dotenv'
-import ErrorHandlingMiddleware from "../src/middleware/errorHandlingMiddleware"
 import path from 'path'
 // or your path to dev.env file
 dotenv.config({path:path.resolve(__dirname,"./dev.env")})
+import ErrorHandlingMiddleware from "../src/middleware/errorHandlingMiddleware"
 import cors from 'cors'
 import express from 'express'
-import startDB from '../src/database/startDatabse'
+import startDatabase from '../src/database/startDatabse'
 import globalRouter from '../src/routes/index'
 import initalizeWebSocketServer from '../src/WSS/wss_init'
 import cookieParser from 'cookie-parser'
@@ -21,11 +21,12 @@ app.use(express.json())
 app.use('/api',globalRouter)
 // error handling middleware must be the last included middleware in middlewares
 app.use(ErrorHandlingMiddleware)
-initalizeWebSocketServer(app)
-
 const start = async() => {
 
-    await startDB()
+    await startDatabase()
+
+    initalizeWebSocketServer(app)
+
 
     const PORT = parseInt(process.env.PORT)
 

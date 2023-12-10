@@ -1,4 +1,3 @@
-import {userModel} from '../models/User'
 import {errorInEmail} from './data-checkers/user-checkers/errorInEmail'
 import {errorInUsername} from './data-checkers/user-checkers/errorInUsername'
 import {errorInPassword} from './data-checkers/user-checkers/errorInPassword'

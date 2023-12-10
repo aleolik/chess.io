@@ -1,4 +1,4 @@
-import { userModel } from "../../../models/User"
+import { User } from "../../../models/User"
 
 // username can be from minUsernameLength to maxUsernameLength symbols length
 const minUsernameLength = 4
@@ -22,7 +22,7 @@ export const errorInUsername = async(username : string) : Promise<string> => {
         return `Username must be from ${minUsernameLength} to ${maxUsernameLength} symbols`
     }
 
-    const usernameExists = await userModel.findOne({where:{username:username}})
+    const usernameExists = await User.findOne({where:{username:username}})
 
     if (usernameExists) {
         return 'This username was already used for another user'

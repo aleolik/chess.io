@@ -1,4 +1,4 @@
-import { userModel } from "../../../models/User"
+import { User } from "../../../models/User"
 
 const errorInEmailFormat = (email : string) => {
 
@@ -22,7 +22,7 @@ export const errorInEmail = async(email : string) : Promise<string> => {
         return 'You need to add @gmail.com to your email adress'
     }
 
-    const emailExists = await userModel.findOne({where:{email:email}})
+    const emailExists = await User.findOne({where:{email:email}})
 
     if (emailExists) {
         return 'This email was already used for another user'

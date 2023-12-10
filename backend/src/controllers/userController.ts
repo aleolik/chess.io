@@ -1,5 +1,5 @@
 import ApiError from "../error/ApiError"
-import {userModel, userClass} from "../models/User"
+import {User} from "../models/User"
 import generateToken from "../utils/generateToken"
 import bcrypt from 'bcrypt'
 import checkUserData from "../utils/checkUserData"
@@ -40,11 +40,11 @@ class userController{
             // hash password
             const hashedPassword = await bcrypt.hash(password,7)
 
-            const newUser = await userModel.create({
+            const newUser = await User.create({
                 username:username,
                 password:hashedPassword,
                 email:email,
-            }) as userClass
+            }) as User
 
             // create new history for user
             // const newHistory = await History.create({id:newUser.id})
@@ -82,7 +82,7 @@ class userController{
                 return next(ApiError.badRequest('password was not provided'))
             }
     
-            const user = await userModel.findOne({where:{email:email}}) as userClass
+            const user = await User.findOne({where:{email:email}}) as User
     
             if (!user){
                 return next(ApiError.badRequest('email or password are wrong!'))
@@ -155,7 +155,7 @@ class userController{
     // admin function
     async getAllUsers(req : Request,res : Response,next : NextFunction){
         try {
-            const users = await userModel.findAll()
+            const users = await User.findAll()
             return res.json(users)
         } catch (e) {
             next(ApiError.badRequest(e))
@@ -172,7 +172,7 @@ class userController{
                 return next(ApiError.badRequest('id can only be number type'))
             }
 
-            const user = await userModel.findOne({where:{id:id}})
+            const user = await User.findOne({where:{id:id}})
 
             if (!user){
                 return next(ApiError.badRequest(`user with id :${id},does not exist`))

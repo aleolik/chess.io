@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { AVAILABLE_ROLES, userClass } from '../models/User'
+import { AVAILABLE_ROLES, User } from '../models/User'
 import { IUserFromClient } from '../interfaces'
 import { NextFunction,Request,Response } from 'express'
 
@@ -23,7 +23,7 @@ const checkRoleMiddleware = (RoleUserNeedToHave : AVAILABLE_ROLES) => {
                 return res.status(403).json({"message":"Unathorized"})
             }
 
-            const userFromDB = await userClass.findOne({where:{email:user.email}})
+            const userFromDB = await User.findOne({where:{email:user.email}})
 
             if (userFromDB.roles.includes(RoleUserNeedToHave)){
                 return next()
